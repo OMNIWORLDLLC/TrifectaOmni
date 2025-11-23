@@ -6,6 +6,7 @@ Start with shadow mode, then enable real execution when ready.
 """
 
 import sys
+import getpass
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -100,8 +101,8 @@ def main():
         
         if broker_type == 'ccxt':
             exchange_id = input("Exchange ID (binance/kraken/etc): ").strip()
-            api_key = input("API Key: ").strip()
-            api_secret = input("API Secret: ").strip()
+            api_key = getpass.getpass("API Key: ").strip()
+            api_secret = getpass.getpass("API Secret: ").strip()
             
             broker_config = {
                 'exchange_id': exchange_id,
@@ -112,7 +113,7 @@ def main():
             broker = create_broker_bridge('ccxt', broker_config)
         
         elif broker_type == 'oanda':
-            api_key = input("Oanda API Key: ").strip()
+            api_key = getpass.getpass("Oanda API Key: ").strip()
             account_id = input("Oanda Account ID: ").strip()
             
             broker_config = {
@@ -123,8 +124,8 @@ def main():
             broker = create_broker_bridge('oanda', broker_config)
         
         elif broker_type == 'alpaca':
-            api_key = input("Alpaca API Key: ").strip()
-            api_secret = input("Alpaca API Secret: ").strip()
+            api_key = getpass.getpass("Alpaca API Key: ").strip()
+            api_secret = getpass.getpass("Alpaca API Secret: ").strip()
             
             broker_config = {
                 'api_key': api_key,
@@ -170,11 +171,11 @@ def main():
     elif data_source == 'binance':
         feed_config = {}
     elif data_source == 'alpaca':
-        api_key = input("Alpaca API Key (for data): ").strip()
-        api_secret = input("Alpaca API Secret: ").strip()
+        api_key = getpass.getpass("Alpaca API Key (for data): ").strip()
+        api_secret = getpass.getpass("Alpaca API Secret: ").strip()
         feed_config = {'api_key': api_key, 'api_secret': api_secret}
     elif data_source == 'oanda':
-        api_key = input("Oanda API Key: ").strip()
+        api_key = getpass.getpass("Oanda API Key: ").strip()
         account_id = input("Oanda Account ID: ").strip()
         feed_config = {'api_key': api_key, 'account_id': account_id, 'practice': True}
     else:

@@ -207,7 +207,8 @@ def identify_support_resistance(prices: List[float], window: int = 10, threshold
 
 def calculate_average_directional_index(prices: List[float], high_prices: List[float], low_prices: List[float], period: int = 14) -> float:
     """Calculate Average Directional Index (ADX) for trend strength."""
-    if len(prices) < period + 1:
+    # Require 2x period: period for initial DI calculation + period for ADX smoothing
+    if len(prices) < period * 2:
         return 0.0
     
     tr_values = []
@@ -233,15 +234,26 @@ def calculate_average_directional_index(prices: List[float], high_prices: List[f
     if len(tr_values) < period:
         return 0.0
     
-    atr = np.mean(tr_values[-period:])
-    plus_di = 100 * np.mean(plus_dm_values[-period:]) / atr if atr > 0 else 0
-    minus_di = 100 * np.mean(minus_dm_values[-period:]) / atr if atr > 0 else 0
+    # Calculate DX values for smoothing
+    # Note: This implementation prioritizes clarity over performance.
+    # For large datasets, consider using rolling window or EMA for optimization.
+    dx_values = []
+    for i in range(period - 1, len(tr_values)):
+        atr = np.mean(tr_values[i-period+1:i+1])
+        plus_di = 100 * np.mean(plus_dm_values[i-period+1:i+1]) / atr if atr > 0 else 0
+        minus_di = 100 * np.mean(minus_dm_values[i-period+1:i+1]) / atr if atr > 0 else 0
+        
+        # Only calculate DX when denominator is non-zero to avoid division by zero
+        if plus_di + minus_di > 0:
+            dx = 100 * abs(plus_di - minus_di) / (plus_di + minus_di)
+            dx_values.append(dx)
     
-    if plus_di + minus_di == 0:
+    # ADX is the smoothed average of DX values
+    # Require at least 'period' DX values for reliable ADX calculation
+    if len(dx_values) < period:
         return 0.0
     
-    dx = 100 * abs(plus_di - minus_di) / (plus_di + minus_di)
-    adx = dx
+    adx = np.mean(dx_values[-period:])
     
     return adx
 
