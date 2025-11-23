@@ -1,6 +1,32 @@
 # TrifectaOmni
 # OMNI-TRIFECTA QUANT ENGINE
 
+[![Status](https://img.shields.io/badge/Status-Ready%20to%20Run-brightgreen)](STATUS.md)
+[![Python](https://img.shields.io/badge/Python-3.10%2B-blue)](requirements.txt)
+[![License](https://img.shields.io/badge/License-Proprietary-red)]()
+
+## 🚀 Quick Start
+
+**This repository is ready to run!** Test it in 3 commands:
+
+```bash
+git clone https://github.com/OMNIWORLDLLC/TrifectaOmni.git
+cd TrifectaOmni
+pip install -r requirements.txt && python examples/shadow_mode_example.py
+```
+
+Or use the automated installer:
+
+```bash
+./full-system-install.sh
+```
+
+📋 **See [STATUS.md](STATUS.md) for complete readiness information**  
+📖 **See [QUICKSTART.md](QUICKSTART.md) for quick setup instructions**  
+⚙️ **See [SETUP.md](SETUP.md) for detailed configuration**
+
+---
+
 ## FORMAL SYSTEM ARCHITECTURE DOCUMENT
 
 ### 1. SYSTEM PURPOSE AND PHILOSOPHY
