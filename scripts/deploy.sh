@@ -85,7 +85,7 @@ import sys
 sys.path.insert(0, '.')
 
 from omni_trifecta.core.config import OmniConfig
-from omni_trifecta.safety.deployment_checklist import DeploymentChecklist
+from omni_trifecta.safety.managers import DeploymentChecklist
 
 config = OmniConfig()
 checklist = DeploymentChecklist(config)

@@ -99,7 +99,7 @@ import sys
 sys.path.insert(0, '.')
 
 from omni_trifecta.core.config import OmniConfig
-from omni_trifecta.safety.deployment_checklist import DeploymentChecklist
+from omni_trifecta.safety.managers import DeploymentChecklist
 
 print("\n=== Deployment Checklist ===\n")
 
@@ -109,10 +109,11 @@ try:
     checks = checklist.verify()
     
     components = [
-        ("MT5 Connection", checks['mt5_ready']),
-        ("Binary Options API", checks['binary_ready']),
-        ("DEX/Blockchain RPC", checks['dex_ready']),
-        ("Logging System", checks['logging_ready'])
+        ("MT5 Connection", checks['mt5_configured']),
+        ("Binary Options API", checks['binary_configured']),
+        ("DEX/Blockchain RPC", checks['dex_configured']),
+        ("Logging System", checks['log_dir_accessible']),
+        ("ONNX Model (optional)", checks.get('onnx_model_exists', False))
     ]
     
     for name, status in components:
@@ -131,6 +132,8 @@ try:
         
 except Exception as e:
     print(f"✗ Checklist failed: {e}")
+    import traceback
+    traceback.print_exc()
     sys.exit(1)
 EOF
 
@@ -148,12 +151,12 @@ sys.path.insert(0, '.')
 
 modules = [
     'omni_trifecta.core.config',
-    'omni_trifecta.prediction.sequence_model',
+    'omni_trifecta.prediction.sequence_models',
     'omni_trifecta.fibonacci.master_governor',
-    'omni_trifecta.decision.master_governor_x100',
-    'omni_trifecta.execution.execution_hub',
-    'omni_trifecta.safety.safety_manager',
-    'omni_trifecta.runtime.omni_runtime',
+    'omni_trifecta.decision.master_governor',
+    'omni_trifecta.execution.executors',
+    'omni_trifecta.safety.managers',
+    'omni_trifecta.runtime.orchestration',
 ]
 
 errors = []

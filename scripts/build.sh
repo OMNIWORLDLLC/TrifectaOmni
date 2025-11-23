@@ -124,7 +124,7 @@ import sys
 sys.path.insert(0, '.')
 
 from omni_trifecta.core.config import OmniConfig
-from omni_trifecta.safety.deployment_checklist import DeploymentChecklist
+from omni_trifecta.safety.managers import DeploymentChecklist
 
 print("\n=== Pre-flight System Checks ===\n")
 
@@ -135,10 +135,11 @@ try:
     checklist = DeploymentChecklist(config)
     checks = checklist.verify()
     
-    print(f"\nMT5 Ready: {'✓' if checks['mt5_ready'] else '✗'}")
-    print(f"Binary API Ready: {'✓' if checks['binary_ready'] else '✗'}")
-    print(f"DEX Ready: {'✓' if checks['dex_ready'] else '✗'}")
-    print(f"Logging Ready: {'✓' if checks['logging_ready'] else '✗'}")
+    print(f"\nMT5 Configured: {'✓' if checks['mt5_configured'] else '✗'}")
+    print(f"Binary API Configured: {'✓' if checks['binary_configured'] else '✗'}")
+    print(f"DEX Configured: {'✓' if checks['dex_configured'] else '✗'}")
+    print(f"Logging System: {'✓' if checks['log_dir_accessible'] else '✗'}")
+    print(f"ONNX Model: {'✓' if checks.get('onnx_model_exists', False) else '✗ (optional)'}")
     
     if not checks['all_passed']:
         print("\n⚠ Some checks failed. Please configure .env file for production deployment.")
@@ -148,6 +149,8 @@ try:
         
 except Exception as e:
     print(f"✗ Error during pre-flight checks: {e}")
+    import traceback
+    traceback.print_exc()
     sys.exit(1)
 EOF
 
