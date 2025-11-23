@@ -8,6 +8,15 @@ from .executors import (
     RealTimeExecutionHub,
     ShadowExecutionHub,
 )
+from .brokers import (
+    BrokerBridge,
+    CCXTBrokerBridge,
+    OandaBrokerBridge,
+    AlpacaBrokerBridge,
+    BinaryOptionsBridge,
+    Web3ArbitrageBridge,
+    create_broker_bridge,
+)
 
 __all__ = [
     "ExecutorBase",
@@ -16,4 +25,11 @@ __all__ = [
     "ArbitrageExecutor",
     "RealTimeExecutionHub",
     "ShadowExecutionHub",
+    "BrokerBridge",
+    "CCXTBrokerBridge",
+    "OandaBrokerBridge",
+    "AlpacaBrokerBridge",
+    "BinaryOptionsBridge",
+    "Web3ArbitrageBridge",
+    "create_broker_bridge",
 ]
