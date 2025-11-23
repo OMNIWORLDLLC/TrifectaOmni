@@ -1,5 +1,68 @@
 # TrifectaOmni - Setup and Usage Guide
 
+[![Status](https://img.shields.io/badge/Status-Ready%20to%20Run-brightgreen)](STATUS.md)
+[![Python](https://img.shields.io/badge/Python-3.10%2B-blue)](requirements.txt)
+
+## 🎯 Repository Status
+
+✅ **This repository is READY TO RUN!**
+
+- All modules are implemented
+- Dependencies are listed in requirements.txt
+- Shadow mode works without any configuration
+- Complete documentation is provided
+
+See [STATUS.md](STATUS.md) for detailed readiness information.
+
+---
+
+## Prerequisites
+
+### System Requirements
+
+**Minimum:**
+- Operating System: Linux, macOS, or Windows (WSL recommended for Windows)
+- Python: 3.10 or higher
+- RAM: 4GB minimum, 8GB+ recommended
+- Storage: 1GB free space
+- Internet: Stable connection for data feeds
+
+**Check your Python version:**
+```bash
+python --version  # Should be 3.10 or higher
+```
+
+**If you need to install Python 3.10+:**
+- Ubuntu/Debian: `sudo apt install python3.10 python3-pip`
+- macOS: `brew install python@3.10`
+- Windows: Download from [python.org](https://www.python.org/downloads/)
+
+### Python Packages
+
+All required packages are listed in `requirements.txt`:
+- numpy >= 1.24.0
+- pandas >= 2.0.0
+- scikit-learn >= 1.3.0
+- onnxruntime >= 1.15.0
+- web3 >= 6.0.0
+- And more...
+
+**Installation is automatic:**
+```bash
+pip install -r requirements.txt
+```
+
+### Optional External Services
+
+**For Live Trading (Optional):**
+- MetaTrader 5 terminal (for spot forex)
+- Binary options platform account (e.g., Pocket Option)
+- Blockchain RPC access (for arbitrage)
+
+**Note:** Shadow mode works without any external services!
+
+---
+
 ## Quick Start
 
 ### Installation
