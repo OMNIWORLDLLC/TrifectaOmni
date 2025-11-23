@@ -1,6 +1,30 @@
 # TrifectaOmni - Quick Start
 
-## Installation
+## One-Click Installation (Recommended)
+
+Test the installation prerequisites and run the complete setup:
+
+```bash
+# Clone the repository
+git clone https://github.com/OMNIWORLDLLC/TrifectaOmni.git
+cd TrifectaOmni
+
+# Test prerequisites (optional but recommended)
+bash scripts/test-install.sh
+
+# One-click installation with shadow mode testing
+./full-system-install.sh
+```
+
+This will automatically:
+1. Install all dependencies and create virtual environment
+2. Build and compile the system
+3. Wire up configuration and validate connectivity
+4. Deploy in shadow mode for testing
+
+## Manual Installation
+
+If you prefer to install manually:
 
 ```bash
 # Clone the repository

@@ -136,6 +136,42 @@ bash scripts/deploy.sh service
 - Log rotation
 - Crash recovery
 
+### 5. Test Install (`test-install.sh`)
+
+Comprehensive test suite for validating the one-click installation process:
+
+```bash
+bash scripts/test-install.sh
+```
+
+**What it tests:**
+1. Script existence and executability
+2. Help message display
+3. Prerequisite scripts presence
+4. Python version compatibility (>=3.8)
+5. requirements.txt validity
+6. .env.example template
+7. Package structure integrity
+8. Example files presence
+9. Documentation files
+10. Script mode validation
+11. Existing installation functionality
+12. Script phases structure (4 phases)
+13. Error handling mechanisms
+14. Logging functions
+15. Production mode safety confirmations
+
+**When to use:**
+- Before running the full installation
+- After making changes to installation scripts
+- As part of CI/CD validation
+- To troubleshoot installation issues
+
+**Expected Output:**
+- Test summary showing passed/failed tests
+- Detailed results for each test
+- Pass/fail verdict with guidance
+
 ## Full System Workflow
 
 ### First Time Setup
@@ -230,7 +266,25 @@ TrifectaOmni/
 
 ## Troubleshooting
 
+### Pre-Installation Validation
+
+Before installation, run the test suite to identify potential issues:
+
+```bash
+# Run comprehensive tests
+bash scripts/test-install.sh
+
+# If all tests pass, proceed with installation
+./full-system-install.sh shadow
+```
+
 ### Installation Issues
+
+**Problem:** Unsure if system is ready for installation
+```bash
+# Run test suite to validate prerequisites
+bash scripts/test-install.sh
+```
 
 **Problem:** Python version too old
 ```bash
@@ -321,8 +375,25 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: '3.10'
+      - name: Test installation prerequisites
+        run: bash scripts/test-install.sh
       - name: Run full system install
         run: ./full-system-install.sh shadow
+```
+
+### Pre-Deployment Testing
+
+Always test before deploying:
+
+```bash
+# 1. Run test suite
+bash scripts/test-install.sh
+
+# 2. If tests pass, run shadow mode
+./full-system-install.sh shadow
+
+# 3. Review results before production
+tail -f runtime/logs/trades.jsonl
 ```
 
 ## Security Notes
