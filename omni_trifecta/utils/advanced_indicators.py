@@ -249,6 +249,7 @@ def calculate_average_directional_index(prices: List[float], high_prices: List[f
             dx_values.append(dx)
     
     # ADX is the smoothed average of DX values
+    # Require at least 'period' DX values for reliable ADX calculation
     if len(dx_values) < period:
         return 0.0
     
