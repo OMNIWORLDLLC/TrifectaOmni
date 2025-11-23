@@ -99,11 +99,16 @@ bash scripts/deploy.sh shadow
 After installation, verify the system works:
 
 ```bash
+# Run automated verification
+python verify_installation.py
+
 # Run shadow mode test
 python examples/shadow_mode_example.py
 
 # Expected output: System runs successfully with performance summary
 ```
+
+See [INSTALLATION_VERIFICATION.md](INSTALLATION_VERIFICATION.md) for detailed verification instructions and troubleshooting.
 
 ### Configuration (Optional)
 
