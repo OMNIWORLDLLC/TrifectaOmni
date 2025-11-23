@@ -19,6 +19,10 @@ import os
 from pathlib import Path
 
 
+# Configuration
+PYTHON_VERSION_REQUIRED = (3, 10)  # Minimum Python version required
+
+
 # Color codes for terminal output
 class Colors:
     GREEN = '\033[92m'
@@ -57,13 +61,12 @@ def check_python_version():
     
     version = sys.version_info
     version_str = f"{version.major}.{version.minor}.{version.micro}"
-    required = (3, 10)
     
-    passed = version >= required
+    passed = version >= PYTHON_VERSION_REQUIRED
     print_check(
         f"Python {version_str}",
         passed,
-        f"Required: Python {required[0]}.{required[1]}+" if not passed else ""
+        f"Required: Python {PYTHON_VERSION_REQUIRED[0]}.{PYTHON_VERSION_REQUIRED[1]}+" if not passed else ""
     )
     
     return passed
@@ -233,27 +236,51 @@ def run_basic_import_test():
     """Try to run a basic import test"""
     print_header("Basic System Import Test")
     
+    all_passed = True
+    
+    # Test imports individually for better error reporting
+    imports = [
+        ('omni_trifecta.decision.master_governor', 'MasterGovernorX100'),
+        ('omni_trifecta.execution.executors', 'ShadowExecutionHub'),
+        ('omni_trifecta.safety.managers', 'SafetyManager'),
+        ('omni_trifecta.runtime.orchestration', 'OmniRuntime'),
+    ]
+    
+    components = {}
+    
+    for module_name, class_name in imports:
+        try:
+            module = importlib.import_module(module_name)
+            components[class_name] = getattr(module, class_name)
+            print_check(f"Import {class_name}", True)
+        except Exception as e:
+            print_check(f"Import {class_name}", False, str(e))
+            all_passed = False
+            return False
+    
+    # Try to instantiate if imports succeeded
     try:
-        from omni_trifecta.decision.master_governor import MasterGovernorX100
-        from omni_trifecta.execution.executors import ShadowExecutionHub
-        from omni_trifecta.safety.managers import SafetyManager
-        from omni_trifecta.runtime.orchestration import OmniRuntime
-        
-        # Try to instantiate basic components
-        governor = MasterGovernorX100()
-        hub = ShadowExecutionHub()
-        safety = SafetyManager(max_daily_loss=100, max_daily_trades=50, max_loss_streak=5)
-        
-        print_check("Import core components", True)
+        governor = components['MasterGovernorX100']()
         print_check("Instantiate MasterGovernorX100", True)
-        print_check("Instantiate ShadowExecutionHub", True)
-        print_check("Instantiate SafetyManager", True)
-        
-        return True
-        
     except Exception as e:
-        print_check("Basic system import", False, str(e))
-        return False
+        print_check("Instantiate MasterGovernorX100", False, str(e))
+        all_passed = False
+    
+    try:
+        hub = components['ShadowExecutionHub']()
+        print_check("Instantiate ShadowExecutionHub", True)
+    except Exception as e:
+        print_check("Instantiate ShadowExecutionHub", False, str(e))
+        all_passed = False
+    
+    try:
+        safety = components['SafetyManager'](max_daily_loss=100, max_daily_trades=50, max_loss_streak=5)
+        print_check("Instantiate SafetyManager", True)
+    except Exception as e:
+        print_check("Instantiate SafetyManager", False, str(e))
+        all_passed = False
+    
+    return all_passed
 
 
 def main():
