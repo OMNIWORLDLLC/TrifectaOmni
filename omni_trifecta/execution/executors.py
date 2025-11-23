@@ -2,6 +2,7 @@
 
 from typing import Dict, Any, Callable, Optional
 from abc import ABC, abstractmethod
+import random
 
 
 class ExecutorBase(ABC):
@@ -269,7 +270,6 @@ class ShadowExecutionHub(RealTimeExecutionHub):
         # Simulate different outcomes based on engine type
         if engine_type == "binary":
             # Simulate 60% win rate for binary
-            import random
             win = random.random() < 0.6
             pnl = decision.get("stake", 1.0) * 0.8 if win else -decision.get("stake", 1.0)
             
@@ -282,7 +282,6 @@ class ShadowExecutionHub(RealTimeExecutionHub):
         
         elif engine_type == "spot":
             # Simulate average profit
-            import random
             pnl = random.gauss(0, decision.get("tp", 0.01) * 0.5)
             
             return {
@@ -294,7 +293,6 @@ class ShadowExecutionHub(RealTimeExecutionHub):
         
         elif engine_type == "arbitrage":
             # Simulate small profit
-            import random
             pnl = random.uniform(0, 0.01)
             
             return {

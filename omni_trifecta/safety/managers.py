@@ -2,6 +2,7 @@
 
 from typing import Dict, Any
 from datetime import datetime, timedelta
+import os
 
 from ..core.config import OmniConfig
 
@@ -153,7 +154,6 @@ class DeploymentChecklist:
         checks["log_dir_accessible"] = self.config.log_dir.exists()
         
         # Check ONNX model (optional)
-        import os
         checks["onnx_model_exists"] = os.path.exists(self.config.seq_model_onnx)
         
         # Overall status

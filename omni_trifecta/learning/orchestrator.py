@@ -3,6 +3,7 @@
 from typing import Dict, Any, Callable, List
 from pathlib import Path
 import json
+import shutil
 
 from ..decision.rl_agents import RegimeSwitchingRL, ArbitrageRLAgent
 
@@ -248,7 +249,6 @@ class ModelMutationController:
         version_id = f"v{self.current_version}_{int(performance_score * 1000)}"
         
         # Copy model to versioned location
-        import shutil
         dest_path = self.models_dir / f"model_{version_id}.onnx"
         shutil.copy(model_path, dest_path)
         

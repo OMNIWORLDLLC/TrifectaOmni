@@ -1,7 +1,7 @@
 """Utility functions for technical analysis and calculations."""
 
 import numpy as np
-from typing import List, Dict
+from typing import List, Dict, Tuple
 
 
 def fibonacci_retracements(high: float, low: float) -> Dict[str, float]:
@@ -46,7 +46,7 @@ def fibonacci_extensions(high: float, low: float) -> Dict[str, float]:
     }
 
 
-def atr_adjusted_zone(price: float, atr: float, multiplier: float = 1.0) -> tuple[float, float]:
+def atr_adjusted_zone(price: float, atr: float, multiplier: float = 1.0) -> Tuple[float, float]:
     """Calculate ATR-adjusted support/resistance zone.
     
     Args:
@@ -91,7 +91,7 @@ def calculate_atr(highs: List[float], lows: List[float], closes: List[float], pe
     return float(np.mean(true_ranges[-period:]))
 
 
-def detect_swing_points(prices: List[float], window: int = 5) -> List[tuple[int, float, str]]:
+def detect_swing_points(prices: List[float], window: int = 5) -> List[Tuple[int, float, str]]:
     """Detect swing high and low points.
     
     Args:
