@@ -243,6 +243,7 @@ def calculate_average_directional_index(prices: List[float], high_prices: List[f
         plus_di = 100 * np.mean(plus_dm_values[i-period+1:i+1]) / atr if atr > 0 else 0
         minus_di = 100 * np.mean(minus_dm_values[i-period+1:i+1]) / atr if atr > 0 else 0
         
+        # Only calculate DX when denominator is non-zero to avoid division by zero
         if plus_di + minus_di > 0:
             dx = 100 * abs(plus_di - minus_di) / (plus_di + minus_di)
             dx_values.append(dx)
