@@ -1,0 +1,26 @@
+2025-11-24 12:14:24,920 - realtime_multi_asset_demo_production - INFO - Initializing Production Real-Time Scanner...
+2025-11-24 12:14:24,920 - realtime_multi_asset_demo_production - INFO - ℹ️ MT5 credentials not configured in .env
+2025-11-24 12:14:28,533 - realtime_multi_asset_demo_production - INFO - ✅ CCXT library available
+2025-11-24 12:14:28,533 - realtime_multi_asset_demo_production - INFO - ℹ️ DEX credentials not configured in .env
+2025-11-24 12:14:28,533 - realtime_multi_asset_demo_production - INFO - ℹ️ Pocket Option token not configured in .env
+2025-11-24 12:14:28,533 - realtime_multi_asset_demo_production - ERROR - Error initializing execution system: OrderManagementSystem.__init__() got an unexpected keyword argument 'initial_capital'
+2025-11-24 12:20:16,235 - realtime_multi_asset_demo_production - INFO - Initializing Production Real-Time Scanner...
+2025-11-24 12:20:16,235 - realtime_multi_asset_demo_production - INFO - ℹ️ MT5 credentials not configured in .env
+2025-11-24 12:20:16,665 - realtime_multi_asset_demo_production - INFO - ✅ CCXT library available
+2025-11-24 12:20:16,666 - realtime_multi_asset_demo_production - INFO - ℹ️ DEX credentials not configured in .env
+2025-11-24 12:20:16,666 - realtime_multi_asset_demo_production - INFO - ℹ️ Pocket Option token not configured in .env
+2025-11-24 12:20:16,666 - realtime_multi_asset_demo_production - ERROR - Error initializing execution system: SafetyManager.__init__() got an unexpected keyword argument 'max_position_size'
+2025-11-24 12:26:06,533 - realtime_multi_asset_demo_production - INFO - Initializing Production Real-Time Scanner...
+2025-11-24 12:26:06,534 - realtime_multi_asset_demo_production - INFO - ℹ️ MT5 credentials not configured in .env
+2025-11-24 12:26:06,979 - realtime_multi_asset_demo_production - INFO - ✅ CCXT library available
+2025-11-24 12:26:06,979 - realtime_multi_asset_demo_production - INFO - ℹ️ DEX credentials not configured in .env
+2025-11-24 12:26:06,979 - realtime_multi_asset_demo_production - INFO - ℹ️ Pocket Option token not configured in .env
+2025-11-24 12:26:06,979 - realtime_multi_asset_demo_production - INFO - ✅ Full execution system initialized
+2025-11-24 12:26:06,979 - realtime_multi_asset_demo_production - INFO - ✅ Production Scanner initialized successfully
+2025-11-24 12:27:17,041 - realtime_multi_asset_demo_production - INFO - Initializing Production Real-Time Scanner...
+2025-11-24 12:27:17,041 - realtime_multi_asset_demo_production - INFO - ℹ️ MT5 credentials not configured in .env
+2025-11-24 12:27:17,459 - realtime_multi_asset_demo_production - INFO - ✅ CCXT library available
+2025-11-24 12:27:17,459 - realtime_multi_asset_demo_production - INFO - ℹ️ DEX credentials not configured in .env
+2025-11-24 12:27:17,460 - realtime_multi_asset_demo_production - INFO - ℹ️ Pocket Option token not configured in .env
+2025-11-24 12:27:17,460 - realtime_multi_asset_demo_production - INFO - ✅ Full execution system initialized
+2025-11-24 12:27:17,460 - realtime_multi_asset_demo_production - INFO - ✅ Production Scanner initialized successfully
