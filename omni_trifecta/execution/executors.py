@@ -308,3 +308,151 @@ class ShadowExecutionHub(RealTimeExecutionHub):
             "pnl": 0.0,
             "mode": "SHADOW"
         }
+
+
+class ArbitrageExecutor(ExecutorBase):
+    """Arbitrage trade executor for paper trading."""
+    
+    def __init__(self, oms=None, risk_manager=None, mode='paper'):
+        """Initialize arbitrage executor.
+        
+        Args:
+            oms: Order management system
+            risk_manager: Risk manager
+            mode: Execution mode ('paper' or 'live')
+        """
+        self.oms = oms
+        self.risk_manager = risk_manager
+        self.mode = mode
+    
+    async def execute_paper_trade(self, route: str, asset: str, capital: float, 
+                                  expected_profit: float, buy_exchange: str = None, 
+                                  sell_exchange: str = None) -> Dict[str, Any]:
+        """Execute paper arbitrage trade.
+        
+        Args:
+            route: Route type (2-HOP, 3-HOP, BRIDGE)
+            asset: Asset symbol
+            capital: Capital to use
+            expected_profit: Expected profit
+            buy_exchange: Buy exchange name
+            sell_exchange: Sell exchange name
+        
+        Returns:
+            Execution result with PnL
+        """
+        # Simulate execution with small variance
+        actual_profit = expected_profit * random.uniform(0.85, 1.0)
+        
+        return {
+            'success': True,
+            'execution_id': f"ARB_{random.randint(10000, 99999)}",
+            'route': route,
+            'asset': asset,
+            'capital': capital,
+            'pnl': actual_profit,
+            'buy_exchange': buy_exchange,
+            'sell_exchange': sell_exchange,
+            'mode': self.mode
+        }
+    
+    def execute(self, decision: Dict[str, Any], ctx: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute arbitrage trade (sync version).
+        
+        Args:
+            decision: Trading decision
+            ctx: Execution context
+        
+        Returns:
+            Execution result
+        """
+        # Simulate small profit
+        pnl = random.uniform(0, 0.01) * decision.get('capital', 10000.0)
+        
+        return {
+            'success': True,
+            'route': decision.get('route', 'default'),
+            'pnl': pnl,
+            'mode': self.mode
+        }
+
+
+class ForexExecutor(ExecutorBase):
+    """Forex trade executor for paper trading."""
+    
+    def __init__(self, oms=None, risk_manager=None, mode='paper'):
+        """Initialize forex executor.
+        
+        Args:
+            oms: Order management system
+            risk_manager: Risk manager
+            mode: Execution mode ('paper' or 'live')
+        """
+        self.oms = oms
+        self.risk_manager = risk_manager
+        self.mode = mode
+    
+    async def execute_paper_trade(self, pair: str, signal: str, entry_price: float,
+                                  take_profit: float, stop_loss: float, 
+                                  size: float) -> Dict[str, Any]:
+        """Execute paper forex trade.
+        
+        Args:
+            pair: Currency pair
+            signal: BUY or SELL
+            entry_price: Entry price
+            take_profit: Take profit level
+            stop_loss: Stop loss level
+            size: Position size
+        
+        Returns:
+            Execution result with PnL
+        """
+        # Simulate outcome based on risk/reward
+        risk = abs(entry_price - stop_loss)
+        reward = abs(take_profit - entry_price)
+        
+        # 60% win rate simulation
+        win = random.random() < 0.6
+        
+        if win:
+            pnl = size * (reward / entry_price)
+        else:
+            pnl = -size * (risk / entry_price)
+        
+        return {
+            'success': True,
+            'execution_id': f"FX_{random.randint(10000, 99999)}",
+            'pair': pair,
+            'signal': signal,
+            'entry': entry_price,
+            'size': size,
+            'pnl': pnl,
+            'outcome': 'WIN' if win else 'LOSS',
+            'mode': self.mode
+        }
+    
+    def execute(self, decision: Dict[str, Any], ctx: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute forex trade (sync version).
+        
+        Args:
+            decision: Trading decision
+            ctx: Execution context
+        
+        Returns:
+            Execution result
+        """
+        # Simulate outcome
+        size = decision.get('size', 10000.0)
+        risk_pct = decision.get('risk', 0.02)
+        
+        # 60% win rate
+        win = random.random() < 0.6
+        pnl = size * risk_pct * (2.0 if win else -1.0)
+        
+        return {
+            'success': True,
+            'pair': decision.get('pair', 'UNKNOWN'),
+            'pnl': pnl,
+            'mode': self.mode
+        }

@@ -26,6 +26,14 @@ class OrderType(Enum):
     STOP_LIMIT = "stop_limit"
 
 
+class OrderSide(Enum):
+    """Order side enumeration for trade direction."""
+    BUY = "buy"
+    SELL = "sell"
+    LONG = "long"
+    SHORT = "short"
+
+
 @dataclass
 class Order:
     """Order representation."""
