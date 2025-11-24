@@ -141,3 +141,13 @@
 2025-11-24 12:29:28,363 - __main__ - ERROR - Error fetching AVAX/USDT from bitfinex: 'volume'
 2025-11-24 12:29:28,363 - __main__ - WARNING - MT5 not connected, skipping forex scan
 2025-11-24 12:29:28,363 - __main__ - WARNING - No data source for binary options
+2025-11-24 12:42:46,033 - __main__ - INFO - Initializing Production Real-Time Scanner...
+2025-11-24 12:42:46,034 - __main__ - INFO - ℹ️ MT5 credentials not configured in .env
+2025-11-24 12:42:46,034 - __main__ - INFO - ✅ CCXT library available
+2025-11-24 12:42:46,034 - __main__ - INFO - ℹ️ DEX credentials not configured in .env
+2025-11-24 12:42:46,034 - __main__ - INFO - ℹ️ Pocket Option token not configured in .env
+2025-11-24 12:42:46,034 - __main__ - INFO - ✅ Full execution system initialized
+2025-11-24 12:42:46,034 - __main__ - INFO - ✅ Production Scanner initialized successfully
+2025-11-24 12:42:46,062 - __main__ - INFO - ✅ Production scanner started
+2025-11-24 12:42:56,518 - __main__ - WARNING - MT5 not connected, skipping forex scan
+2025-11-24 12:42:56,518 - __main__ - WARNING - No data source for binary options
