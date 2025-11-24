@@ -31,3 +31,113 @@
 2025-11-24 12:28:08,457 - realtime_multi_asset_demo_production - INFO - ℹ️ Pocket Option token not configured in .env
 2025-11-24 12:28:08,457 - realtime_multi_asset_demo_production - INFO - ✅ Full execution system initialized
 2025-11-24 12:28:08,457 - realtime_multi_asset_demo_production - INFO - ✅ Production Scanner initialized successfully
+2025-11-24 12:29:05,000 - __main__ - INFO - Initializing Production Real-Time Scanner...
+2025-11-24 12:29:05,001 - __main__ - INFO - ℹ️ MT5 credentials not configured in .env
+2025-11-24 12:29:05,423 - __main__ - INFO - ✅ CCXT library available
+2025-11-24 12:29:05,423 - __main__ - INFO - ℹ️ DEX credentials not configured in .env
+2025-11-24 12:29:05,423 - __main__ - INFO - ℹ️ Pocket Option token not configured in .env
+2025-11-24 12:29:05,423 - __main__ - INFO - ✅ Full execution system initialized
+2025-11-24 12:29:05,423 - __main__ - INFO - ✅ Production Scanner initialized successfully
+2025-11-24 12:29:05,459 - __main__ - INFO - ✅ Production scanner started
+2025-11-24 12:29:05,601 - __main__ - ERROR - Error fetching BTC/USDT from binance: binance GET https://api.binance.com/api/v3/exchangeInfo 451  {
+  "code": 0,
+  "msg": "Service unavailable from a restricted location according to 'b. Eligibility' in https://www.binance.com/en/terms. Please contact customer service if you believe you received this message in error."
+}
+2025-11-24 12:29:07,642 - __main__ - ERROR - Error fetching BTC/USDT from kraken: 'volume'
+2025-11-24 12:29:09,581 - __main__ - ERROR - Error fetching BTC/USDT from coinbase: 'volume'
+2025-11-24 12:29:12,321 - __main__ - ERROR - Error fetching BTC/USDT from bitfinex: 'volume'
+2025-11-24 12:29:12,332 - __main__ - ERROR - Error fetching ETH/USDT from binance: binance GET https://api.binance.com/api/v3/exchangeInfo 451  {
+  "code": 0,
+  "msg": "Service unavailable from a restricted location according to 'b. Eligibility' in https://www.binance.com/en/terms. Please contact customer service if you believe you received this message in error."
+}
+2025-11-24 12:29:12,790 - __main__ - ERROR - Error fetching ETH/USDT from kraken: 'volume'
+2025-11-24 12:29:12,897 - __main__ - ERROR - Error fetching ETH/USDT from coinbase: 'volume'
+2025-11-24 12:29:13,172 - __main__ - ERROR - Error fetching ETH/USDT from bitfinex: 'volume'
+2025-11-24 12:29:13,184 - __main__ - ERROR - Error fetching BNB/USDT from binance: binance GET https://api.binance.com/api/v3/exchangeInfo 451  {
+  "code": 0,
+  "msg": "Service unavailable from a restricted location according to 'b. Eligibility' in https://www.binance.com/en/terms. Please contact customer service if you believe you received this message in error."
+}
+2025-11-24 12:29:13,513 - __main__ - ERROR - Error fetching BNB/USDT from kraken: 'volume'
+2025-11-24 12:29:13,513 - __main__ - ERROR - Error fetching BNB/USDT from coinbase: coinbase does not have market symbol BNB/USDT
+2025-11-24 12:29:13,513 - __main__ - ERROR - Error fetching BNB/USDT from bitfinex: bitfinex does not have market symbol BNB/USDT
+2025-11-24 12:29:13,524 - __main__ - ERROR - Error fetching ADA/USDT from binance: binance GET https://api.binance.com/api/v3/exchangeInfo 451  {
+  "code": 0,
+  "msg": "Service unavailable from a restricted location according to 'b. Eligibility' in https://www.binance.com/en/terms. Please contact customer service if you believe you received this message in error."
+}
+2025-11-24 12:29:14,817 - __main__ - ERROR - Error fetching ADA/USDT from kraken: 'volume'
+2025-11-24 12:29:14,935 - __main__ - ERROR - Error fetching ADA/USDT from coinbase: 'volume'
+2025-11-24 12:29:15,140 - __main__ - ERROR - Error fetching ADA/USDT from bitfinex: 'volume'
+2025-11-24 12:29:15,151 - __main__ - ERROR - Error fetching SOL/USDT from binance: binance GET https://api.binance.com/api/v3/exchangeInfo 451  {
+  "code": 0,
+  "msg": "Service unavailable from a restricted location according to 'b. Eligibility' in https://www.binance.com/en/terms. Please contact customer service if you believe you received this message in error."
+}
+2025-11-24 12:29:15,534 - __main__ - ERROR - Error fetching SOL/USDT from kraken: 'volume'
+2025-11-24 12:29:15,637 - __main__ - ERROR - Error fetching SOL/USDT from coinbase: 'volume'
+2025-11-24 12:29:15,860 - __main__ - ERROR - Error fetching SOL/USDT from bitfinex: 'volume'
+2025-11-24 12:29:15,871 - __main__ - ERROR - Error fetching MATIC/USDT from binance: binance GET https://api.binance.com/api/v3/exchangeInfo 451  {
+  "code": 0,
+  "msg": "Service unavailable from a restricted location according to 'b. Eligibility' in https://www.binance.com/en/terms. Please contact customer service if you believe you received this message in error."
+}
+2025-11-24 12:29:15,872 - __main__ - ERROR - Error fetching MATIC/USDT from kraken: kraken does not have market symbol MATIC/USDT
+2025-11-24 12:29:15,872 - __main__ - ERROR - Error fetching MATIC/USDT from coinbase: coinbase does not have market symbol MATIC/USDT
+2025-11-24 12:29:15,872 - __main__ - ERROR - Error fetching MATIC/USDT from bitfinex: bitfinex does not have market symbol MATIC/USDT
+2025-11-24 12:29:16,071 - __main__ - ERROR - Error fetching AVAX/USDT from binance: binance GET https://api.binance.com/api/v3/exchangeInfo 451  {
+  "code": 0,
+  "msg": "Service unavailable from a restricted location according to 'b. Eligibility' in https://www.binance.com/en/terms. Please contact customer service if you believe you received this message in error."
+}
+2025-11-24 12:29:16,819 - __main__ - ERROR - Error fetching AVAX/USDT from kraken: 'volume'
+2025-11-24 12:29:16,935 - __main__ - ERROR - Error fetching AVAX/USDT from coinbase: 'volume'
+2025-11-24 12:29:17,403 - __main__ - ERROR - Error fetching AVAX/USDT from bitfinex: 'volume'
+2025-11-24 12:29:17,404 - __main__ - WARNING - MT5 not connected, skipping forex scan
+2025-11-24 12:29:17,404 - __main__ - WARNING - No data source for binary options
+2025-11-24 12:29:22,416 - __main__ - ERROR - Error fetching BTC/USDT from binance: binance GET https://api.binance.com/api/v3/exchangeInfo 451  {
+  "code": 0,
+  "msg": "Service unavailable from a restricted location according to 'b. Eligibility' in https://www.binance.com/en/terms. Please contact customer service if you believe you received this message in error."
+}
+2025-11-24 12:29:22,607 - __main__ - ERROR - Error fetching BTC/USDT from kraken: 'volume'
+2025-11-24 12:29:22,702 - __main__ - ERROR - Error fetching BTC/USDT from coinbase: 'volume'
+2025-11-24 12:29:22,787 - __main__ - ERROR - Error fetching BTC/USDT from bitfinex: 'volume'
+2025-11-24 12:29:22,799 - __main__ - ERROR - Error fetching ETH/USDT from binance: binance GET https://api.binance.com/api/v3/exchangeInfo 451  {
+  "code": 0,
+  "msg": "Service unavailable from a restricted location according to 'b. Eligibility' in https://www.binance.com/en/terms. Please contact customer service if you believe you received this message in error."
+}
+2025-11-24 12:29:23,907 - __main__ - ERROR - Error fetching ETH/USDT from kraken: 'volume'
+2025-11-24 12:29:24,006 - __main__ - ERROR - Error fetching ETH/USDT from coinbase: 'volume'
+2025-11-24 12:29:24,217 - __main__ - ERROR - Error fetching ETH/USDT from bitfinex: 'volume'
+2025-11-24 12:29:24,228 - __main__ - ERROR - Error fetching BNB/USDT from binance: binance GET https://api.binance.com/api/v3/exchangeInfo 451  {
+  "code": 0,
+  "msg": "Service unavailable from a restricted location according to 'b. Eligibility' in https://www.binance.com/en/terms. Please contact customer service if you believe you received this message in error."
+}
+2025-11-24 12:29:24,600 - __main__ - ERROR - Error fetching BNB/USDT from kraken: 'volume'
+2025-11-24 12:29:24,600 - __main__ - ERROR - Error fetching BNB/USDT from coinbase: coinbase does not have market symbol BNB/USDT
+2025-11-24 12:29:24,600 - __main__ - ERROR - Error fetching BNB/USDT from bitfinex: bitfinex does not have market symbol BNB/USDT
+2025-11-24 12:29:24,612 - __main__ - ERROR - Error fetching ADA/USDT from binance: binance GET https://api.binance.com/api/v3/exchangeInfo 451  {
+  "code": 0,
+  "msg": "Service unavailable from a restricted location according to 'b. Eligibility' in https://www.binance.com/en/terms. Please contact customer service if you believe you received this message in error."
+}
+2025-11-24 12:29:25,931 - __main__ - ERROR - Error fetching ADA/USDT from kraken: 'volume'
+2025-11-24 12:29:26,168 - __main__ - ERROR - Error fetching ADA/USDT from coinbase: 'volume'
+2025-11-24 12:29:26,376 - __main__ - ERROR - Error fetching ADA/USDT from bitfinex: 'volume'
+2025-11-24 12:29:26,388 - __main__ - ERROR - Error fetching SOL/USDT from binance: binance GET https://api.binance.com/api/v3/exchangeInfo 451  {
+  "code": 0,
+  "msg": "Service unavailable from a restricted location according to 'b. Eligibility' in https://www.binance.com/en/terms. Please contact customer service if you believe you received this message in error."
+}
+2025-11-24 12:29:26,592 - __main__ - ERROR - Error fetching SOL/USDT from kraken: 'volume'
+2025-11-24 12:29:26,818 - __main__ - ERROR - Error fetching SOL/USDT from coinbase: 'volume'
+2025-11-24 12:29:27,373 - __main__ - ERROR - Error fetching SOL/USDT from bitfinex: 'volume'
+2025-11-24 12:29:27,385 - __main__ - ERROR - Error fetching MATIC/USDT from binance: binance GET https://api.binance.com/api/v3/exchangeInfo 451  {
+  "code": 0,
+  "msg": "Service unavailable from a restricted location according to 'b. Eligibility' in https://www.binance.com/en/terms. Please contact customer service if you believe you received this message in error."
+}
+2025-11-24 12:29:27,385 - __main__ - ERROR - Error fetching MATIC/USDT from kraken: kraken does not have market symbol MATIC/USDT
+2025-11-24 12:29:27,385 - __main__ - ERROR - Error fetching MATIC/USDT from coinbase: coinbase does not have market symbol MATIC/USDT
+2025-11-24 12:29:27,385 - __main__ - ERROR - Error fetching MATIC/USDT from bitfinex: bitfinex does not have market symbol MATIC/USDT
+2025-11-24 12:29:27,586 - __main__ - ERROR - Error fetching AVAX/USDT from binance: binance GET https://api.binance.com/api/v3/exchangeInfo 451  {
+  "code": 0,
+  "msg": "Service unavailable from a restricted location according to 'b. Eligibility' in https://www.binance.com/en/terms. Please contact customer service if you believe you received this message in error."
+}
+2025-11-24 12:29:28,057 - __main__ - ERROR - Error fetching AVAX/USDT from kraken: 'volume'
+2025-11-24 12:29:28,154 - __main__ - ERROR - Error fetching AVAX/USDT from coinbase: 'volume'
+2025-11-24 12:29:28,363 - __main__ - ERROR - Error fetching AVAX/USDT from bitfinex: 'volume'
+2025-11-24 12:29:28,363 - __main__ - WARNING - MT5 not connected, skipping forex scan
+2025-11-24 12:29:28,363 - __main__ - WARNING - No data source for binary options

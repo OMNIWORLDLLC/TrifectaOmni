@@ -26,6 +26,12 @@ from fastapi.responses import HTMLResponse
 import uvicorn
 from dotenv import load_dotenv
 
+try:
+    import ccxt
+except ImportError:
+    ccxt = None
+    print("⚠️  CCXT not installed. Install with: pip install ccxt")
+
 # Import TrifectaOmni components
 from omni_trifecta.execution.arbitrage_calculator import (
     MultiHopArbitrageCalculator,
@@ -83,7 +89,8 @@ CRYPTO_PAIRS = [
 ]
 
 # Exchanges to scan for arbitrage (via CCXT)
-EXCHANGES = ['binance', 'kraken', 'coinbase', 'bitfinex']
+# Using exchanges without geo-restrictions
+EXCHANGES = ['kucoin', 'okx', 'bybit', 'gateio']
 
 # Update intervals
 ARBITRAGE_SCAN_INTERVAL = 30  # seconds
@@ -201,15 +208,23 @@ class ProductionDataProvider:
                 return None
             
             ticker = exchange.fetch_ticker(symbol)
+            
+            # Handle different response formats safely
             return {
-                'bid': float(ticker['bid']) if ticker['bid'] else None,
-                'ask': float(ticker['ask']) if ticker['ask'] else None,
-                'last': float(ticker['last']),
-                'volume': float(ticker['volume']) if ticker['volume'] else 0,
-                'timestamp': ticker['timestamp']
+                'bid': float(ticker.get('bid', 0) or ticker.get('last', 0)),
+                'ask': float(ticker.get('ask', 0) or ticker.get('last', 0)),
+                'last': float(ticker.get('last', 0)),
+                'volume': float(ticker.get('baseVolume', 0) or ticker.get('volume', 0) or 0),
+                'timestamp': ticker.get('timestamp', 0)
             }
+        except ccxt.NetworkError as e:
+            logger.debug(f"Network error {symbol} from {exchange_id}: {str(e)[:80]}")
+            return None
+        except ccxt.ExchangeError as e:
+            logger.debug(f"Exchange error {symbol} on {exchange_id}: {str(e)[:80]}")
+            return None
         except Exception as e:
-            logger.error(f"Error fetching {symbol} from {exchange_id}: {e}")
+            logger.error(f"Error fetching {symbol} from {exchange_id}: {str(e)[:100]}")
             return None
     
     async def get_forex_price_mt5(self, symbol: str) -> Optional[Dict[str, float]]:
