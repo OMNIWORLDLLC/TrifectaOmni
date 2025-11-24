@@ -6,6 +6,7 @@ from .rl_agents import (
     LadderRiskAI,
     SpotTPRotator,
     ArbitrageRLAgent,
+    ForexRLAgent,
 )
 from .master_governor import MasterGovernorX100
 
@@ -15,5 +16,6 @@ __all__ = [
     "LadderRiskAI",
     "SpotTPRotator",
     "ArbitrageRLAgent",
+    "ForexRLAgent",
     "MasterGovernorX100",
 ]

@@ -293,6 +293,9 @@ class RealTimeProductionScanner:
         }
         self.trade_history = []
         
+        # Execution control
+        self.auto_execute_enabled = os.getenv('AUTO_EXECUTE', 'false').lower() == 'true'
+        
         logger.info("✅ Production Scanner initialized successfully")
         self._display_startup_info()
     
@@ -337,6 +340,7 @@ class RealTimeProductionScanner:
         print("\n" + "="*80)
         print("🚀 TRIFECTA OMNI - PRODUCTION SCANNER")
         print("="*80)
+        print(f"\n⚙️  EXECUTION MODE: {'AUTO-EXECUTE ✅' if self.auto_execute_enabled else 'DISPLAY ONLY 📊'}")
         print("\n📡 API CONNECTION STATUS:")
         print(f"  • MetaTrader 5 (Forex): {'✅ CONNECTED' if self.data_provider.mt5_enabled else '❌ NOT CONFIGURED'}")
         print(f"  • CCXT (Crypto): {'✅ AVAILABLE' if self.data_provider.ccxt_enabled else '❌ NOT INSTALLED'}")
@@ -441,6 +445,15 @@ class RealTimeProductionScanner:
                 reverse=True
             )[:10]
             
+            # AUTO-EXECUTION: Execute top opportunities if enabled
+            if self.auto_execute_enabled and self.arbitrage_opportunities:
+                for opp in self.arbitrage_opportunities[:3]:  # Top 3 only
+                    # Threshold: >0.5% spread, >$50 profit, risk < 30/100
+                    if (opp['spread_pct'] > 0.5 and 
+                        opp['expected_profit'] > 50.0 and 
+                        opp['risk_score'] < 30.0):
+                        await self.execute_paper_trade_arbitrage(opp)
+            
         except Exception as e:
             logger.error(f"Error scanning arbitrage: {e}")
     
@@ -539,6 +552,22 @@ class RealTimeProductionScanner:
                 reverse=True
             )[:10]
             
+            # AUTO-EXECUTION: Execute top forex signals if enabled
+            if self.auto_execute_enabled and self.forex_opportunities:
+                for opp in self.forex_opportunities[:2]:  # Top 2 only
+                    # Threshold: >70% confidence, risk/reward > 2.0
+                    if (opp['strength'] > 70.0 and 
+                        opp['risk_reward'] > 2.0):
+                        formatted_opp = {
+                            'pair': opp['pair'],
+                            'signal': opp['signal'],
+                            'entry_price': opp['entry'],
+                            'take_profit': opp['take_profit'],
+                            'stop_loss': opp['stop_loss'],
+                            'confidence': f"{opp['strength']:.1f}%"
+                        }
+                        await self.execute_paper_trade_forex(formatted_opp)
+            
         except Exception as e:
             logger.error(f"Error scanning forex: {e}")
     
@@ -608,6 +637,23 @@ class RealTimeProductionScanner:
                     key=lambda x: x['probability'],
                     reverse=True
                 )[:10]
+                
+                # AUTO-EXECUTION: Execute top binary signals if enabled
+                if self.auto_execute_enabled and self.binary_opportunities:
+                    for opp in self.binary_opportunities[:1]:  # Top 1 only (high risk)
+                        # Threshold: >75% probability, 60s expiry
+                        if (opp['probability'] > 75.0 and 
+                            opp['expiry'] == '60s'):
+                            formatted_opp = {
+                                'pair': opp['pair'],
+                                'direction': opp['direction'],
+                                'expiry': opp['expiry'],
+                                'entry_price': opp['entry'],
+                                'risk_amount': opp['risk'],
+                                'potential_profit': opp['potential_profit'],
+                                'probability': f"{opp['probability']:.1f}%"
+                            }
+                            await self.execute_paper_trade_binary(formatted_opp)
             
             except Exception as e:
                 logger.error(f"Error scanning binary options: {e}")
@@ -649,6 +695,280 @@ class RealTimeProductionScanner:
         if len(mt5_symbol) == 6:
             return f"{mt5_symbol[:3]}/{mt5_symbol[3:]}"
         return mt5_symbol
+    
+    async def execute_paper_trade_arbitrage(
+        self,
+        opportunity: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Execute paper arbitrage trade with full system integration.
+        Uses: OMS, Risk Manager, RL Agent, Master Governor, Arbitrage Executor
+        """
+        try:
+            # Step 1: Create order proposal
+            order_proposal = {
+                'type': 'arbitrage',
+                'route': opportunity['route'],
+                'asset': opportunity['asset'],
+                'capital': 10000.0,  # Default capital
+                'expected_profit': float(opportunity['expected_profit'].replace('$', '').replace(',', '')),
+                'risk_score': float(opportunity.get('risk_score', '50.0/100').split('/')[0]),
+                'timestamp': datetime.now()
+            }
+            
+            # Step 2: RL Agent evaluates opportunity
+            rl_decision = self.arb_rl_agent.evaluate_opportunity(order_proposal)
+            
+            if rl_decision['action'] == 'skip':
+                logger.info(f"RL Agent skipped arbitrage: {rl_decision['reason']}")
+                return None
+            
+            # Step 3: Risk Manager approval
+            risk_check = self.risk_manager.check_trade_approval(
+                asset=order_proposal['asset'],
+                size=order_proposal['capital'],
+                direction='long',  # Arbitrage is neutral but classified as long
+                current_portfolio_value=self.oms.get_portfolio_value()
+            )
+            
+            if not risk_check['approved']:
+                logger.info(f"Risk Manager rejected: {risk_check['reason']}")
+                return None
+            
+            # Step 4: Master Governor final decision
+            governor_decision = self.governor.make_decision(
+                opportunity_type='arbitrage',
+                opportunity_data=order_proposal,
+                market_conditions={'volatility': 'medium', 'liquidity': 'high'}
+            )
+            
+            if not governor_decision['execute']:
+                logger.info(f"Governor rejected: {governor_decision['reason']}")
+                return None
+            
+            # Step 5: Execute via Arbitrage Executor
+            execution_result = await self.arb_executor.execute_paper_trade(
+                route=opportunity['route'],
+                asset=opportunity['asset'],
+                capital=order_proposal['capital'],
+                expected_profit=order_proposal['expected_profit'],
+                buy_exchange=opportunity.get('buy_exchange'),
+                sell_exchange=opportunity.get('sell_exchange')
+            )
+            
+            if execution_result['success']:
+                # Update stats
+                self.paper_trades += 1
+                
+                # Store in history
+                trade_record = {
+                    'type': 'arbitrage',
+                    'timestamp': datetime.now().isoformat(),
+                    'asset': opportunity['asset'],
+                    'route': opportunity['route'],
+                    'capital': order_proposal['capital'],
+                    'pnl': execution_result['pnl'],
+                    'execution_id': execution_result['execution_id']
+                }
+                
+                logger.info(f"✅ Paper Arbitrage Executed: {opportunity['asset']} - PnL: ${execution_result['pnl']:.2f}")
+                return execution_result
+            
+        except Exception as e:
+            logger.error(f"Error executing paper arbitrage: {e}")
+        
+        return None
+    
+    async def execute_paper_trade_forex(
+        self,
+        opportunity: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Execute paper forex trade with full system integration.
+        Uses: OMS, Risk Manager, RL Agent, Master Governor, Forex Executor
+        """
+        try:
+            # Step 1: Create order proposal
+            order_proposal = {
+                'type': 'forex',
+                'pair': opportunity['pair'],
+                'signal': opportunity['signal'],
+                'entry_price': float(opportunity['entry_price']),
+                'take_profit': float(opportunity['take_profit']),
+                'stop_loss': float(opportunity['stop_loss']),
+                'size': 10000.0,  # Default position size
+                'confidence': float(opportunity['confidence'].replace('%', '')),
+                'timestamp': datetime.now()
+            }
+            
+            # Step 2: RL Agent evaluates
+            rl_decision = self.forex_rl_agent.evaluate_signal(
+                pair=order_proposal['pair'],
+                signal=order_proposal['signal'],
+                confidence=order_proposal['confidence']
+            )
+            
+            if rl_decision['action'] == 'skip':
+                logger.info(f"RL Agent skipped forex: {rl_decision['reason']}")
+                return None
+            
+            # Adjust size based on RL recommendation
+            order_proposal['size'] *= rl_decision['size_multiplier']
+            
+            # Step 3: Risk Manager approval
+            risk_check = self.risk_manager.check_trade_approval(
+                asset=order_proposal['pair'],
+                size=order_proposal['size'],
+                direction='long' if order_proposal['signal'] == 'BUY' else 'short',
+                current_portfolio_value=self.oms.get_portfolio_value()
+            )
+            
+            if not risk_check['approved']:
+                logger.info(f"Risk Manager rejected forex: {risk_check['reason']}")
+                return None
+            
+            # Step 4: Master Governor final decision
+            governor_decision = self.governor.make_decision(
+                opportunity_type='forex',
+                opportunity_data=order_proposal,
+                market_conditions={
+                    'volatility': 'medium',
+                    'trend': 'bullish' if order_proposal['signal'] == 'BUY' else 'bearish'
+                }
+            )
+            
+            if not governor_decision['execute']:
+                logger.info(f"Governor rejected forex: {governor_decision['reason']}")
+                return None
+            
+            # Step 5: Execute via Forex Executor
+            execution_result = await self.forex_executor.execute_paper_trade(
+                pair=order_proposal['pair'],
+                signal=order_proposal['signal'],
+                entry_price=order_proposal['entry_price'],
+                take_profit=order_proposal['take_profit'],
+                stop_loss=order_proposal['stop_loss'],
+                size=order_proposal['size']
+            )
+            
+            if execution_result['success']:
+                # Update stats
+                self.paper_trades += 1
+                
+                # Update RL agent with result
+                profitable = execution_result['pnl'] > 0
+                self.forex_rl_agent.update_signal_result(
+                    pair=order_proposal['pair'],
+                    signal=order_proposal['signal'],
+                    profitable=profitable
+                )
+                
+                # Store in history
+                trade_record = {
+                    'type': 'forex',
+                    'timestamp': datetime.now().isoformat(),
+                    'pair': opportunity['pair'],
+                    'signal': opportunity['signal'],
+                    'size': order_proposal['size'],
+                    'pnl': execution_result['pnl'],
+                    'execution_id': execution_result['execution_id']
+                }
+                
+                logger.info(f"✅ Paper Forex Executed: {opportunity['pair']} {opportunity['signal']} - PnL: ${execution_result['pnl']:.2f}")
+                return execution_result
+            
+        except Exception as e:
+            logger.error(f"Error executing paper forex: {e}")
+        
+        return None
+    
+    async def execute_paper_trade_binary(
+        self,
+        opportunity: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Execute paper binary options trade with full system integration.
+        Uses: OMS, Risk Manager, Master Governor
+        """
+        try:
+            # Step 1: Create order proposal
+            risk_amount = float(opportunity['risk_amount'].replace('$', '').replace(',', ''))
+            potential_profit = float(opportunity['potential_profit'].replace('$', '').replace(',', ''))
+            
+            order_proposal = {
+                'type': 'binary_options',
+                'pair': opportunity['pair'],
+                'direction': opportunity['direction'],
+                'expiry': opportunity['expiry'],
+                'entry_price': float(opportunity['entry_price']),
+                'risk_amount': risk_amount,
+                'potential_profit': potential_profit,
+                'probability': float(opportunity['probability'].replace('%', '')),
+                'timestamp': datetime.now()
+            }
+            
+            # Step 2: Risk Manager approval (binary options are high risk)
+            risk_check = self.risk_manager.check_trade_approval(
+                asset=order_proposal['pair'],
+                size=order_proposal['risk_amount'],
+                direction='long' if order_proposal['direction'] == 'CALL' else 'short',
+                current_portfolio_value=self.oms.get_portfolio_value()
+            )
+            
+            if not risk_check['approved']:
+                logger.info(f"Risk Manager rejected binary: {risk_check['reason']}")
+                return None
+            
+            # Step 3: Master Governor final decision (extra scrutiny for binary options)
+            governor_decision = self.governor.make_decision(
+                opportunity_type='binary_options',
+                opportunity_data=order_proposal,
+                market_conditions={'volatility': 'high', 'timeframe': '60s'}
+            )
+            
+            if not governor_decision['execute']:
+                logger.info(f"Governor rejected binary: {governor_decision['reason']}")
+                return None
+            
+            # Step 4: Simulate execution (binary options are instant)
+            # Determine outcome based on probability
+            win = np.random.random() < (order_proposal['probability'] / 100)
+            
+            if win:
+                pnl = order_proposal['potential_profit']
+            else:
+                pnl = -order_proposal['risk_amount']
+            
+            execution_result = {
+                'success': True,
+                'execution_id': f"BINARY_{datetime.now().timestamp()}",
+                'pnl': pnl,
+                'outcome': 'WIN' if win else 'LOSS',
+                'timestamp': datetime.now().isoformat()
+            }
+            
+            # Update stats
+            self.paper_trades += 1
+            
+            # Store in history
+            trade_record = {
+                'type': 'binary_options',
+                'timestamp': datetime.now().isoformat(),
+                'pair': opportunity['pair'],
+                'direction': opportunity['direction'],
+                'risk': order_proposal['risk_amount'],
+                'pnl': pnl,
+                'outcome': execution_result['outcome'],
+                'execution_id': execution_result['execution_id']
+            }
+            
+            logger.info(f"✅ Paper Binary Executed: {opportunity['pair']} {opportunity['direction']} - {execution_result['outcome']} - PnL: ${pnl:.2f}")
+            return execution_result
+            
+        except Exception as e:
+            logger.error(f"Error executing paper binary: {e}")
+        
+        return None
     
     async def scan_all_assets(self):
         """Scan all asset types concurrently."""

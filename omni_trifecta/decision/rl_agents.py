@@ -286,3 +286,154 @@ class ArbitrageRLAgent:
             (1 - self.learning_rate) * self.route_scores[route_id] +
             self.learning_rate * reward
         )
+    
+    def evaluate_opportunity(self, order_proposal: Dict[str, Any]) -> Dict[str, Any]:
+        """Evaluate arbitrage opportunity.
+        
+        Args:
+            order_proposal: Arbitrage order details
+        
+        Returns:
+            Decision dict with action and reason
+        """
+        # Check if expected profit meets threshold
+        expected_profit = order_proposal.get('expected_profit', 0.0)
+        capital = order_proposal.get('capital', 1.0)
+        profit_pct = (expected_profit / capital) * 100
+        
+        if profit_pct < 0.5:  # Minimum 0.5% profit
+            return {
+                'action': 'skip',
+                'reason': f'Profit margin too low: {profit_pct:.2f}%',
+                'confidence': 0.0
+            }
+        
+        # Check risk score
+        risk_score = order_proposal.get('risk_score', 50.0)
+        if risk_score > 75.0:
+            return {
+                'action': 'skip',
+                'reason': f'Risk score too high: {risk_score:.1f}/100',
+                'confidence': 0.0
+            }
+        
+        return {
+            'action': 'execute',
+            'reason': f'Good opportunity: {profit_pct:.2f}% profit, {risk_score:.1f}/100 risk',
+            'confidence': min(profit_pct * 10, 95.0)
+        }
+
+
+class ForexRLAgent:
+    """RL agent for forex trade decisions.
+    
+    Learns which forex signals and pairs are most profitable.
+    """
+    
+    def __init__(self, learning_rate: float = 0.1):
+        """Initialize forex RL agent.
+        
+        Args:
+            learning_rate: Learning rate for updates
+        """
+        self.learning_rate = learning_rate
+        self.pair_scores: Dict[str, float] = {}
+        self.signal_accuracy: Dict[str, Dict[str, float]] = {}  # {pair: {signal: accuracy}}
+    
+    def evaluate_signal(self, pair: str, signal: str, confidence: float) -> Dict[str, Any]:
+        """Evaluate forex trading signal.
+        
+        Args:
+            pair: Currency pair (e.g., 'EUR/USD')
+            signal: Trading signal ('BUY', 'SELL', 'HOLD')
+            confidence: Signal confidence (0-100)
+        
+        Returns:
+            Decision dict with action, size_multiplier, and reason
+        """
+        # Initialize tracking for new pairs
+        if pair not in self.pair_scores:
+            self.pair_scores[pair] = 0.5  # Neutral score
+        
+        if pair not in self.signal_accuracy:
+            self.signal_accuracy[pair] = {'BUY': 0.5, 'SELL': 0.5, 'HOLD': 0.5}
+        
+        # Skip HOLD signals
+        if signal == 'HOLD':
+            return {
+                'action': 'skip',
+                'reason': 'HOLD signal - no action',
+                'size_multiplier': 0.0
+            }
+        
+        # Check confidence threshold
+        if confidence < 60.0:
+            return {
+                'action': 'skip',
+                'reason': f'Confidence too low: {confidence:.1f}%',
+                'size_multiplier': 0.0
+            }
+        
+        # Get historical accuracy for this pair+signal combo
+        signal_accuracy = self.signal_accuracy[pair].get(signal, 0.5)
+        pair_score = self.pair_scores[pair]
+        
+        # Combined score: confidence + historical accuracy + pair performance
+        combined_score = (confidence / 100) * 0.4 + signal_accuracy * 0.3 + pair_score * 0.3
+        
+        # Decide on position sizing
+        if combined_score < 0.4:
+            return {
+                'action': 'skip',
+                'reason': f'Combined score too low: {combined_score:.2f}',
+                'size_multiplier': 0.0
+            }
+        elif combined_score < 0.6:
+            size_mult = 0.5  # Half position
+        elif combined_score < 0.8:
+            size_mult = 0.75  # 3/4 position
+        else:
+            size_mult = 1.0  # Full position
+        
+        return {
+            'action': 'execute',
+            'reason': f'{signal} signal: {confidence:.1f}% confidence, {combined_score:.2f} combined score',
+            'size_multiplier': size_mult,
+            'confidence': combined_score * 100
+        }
+    
+    def update_signal_result(self, pair: str, signal: str, profitable: bool):
+        """Update signal accuracy based on trade result.
+        
+        Args:
+            pair: Currency pair
+            signal: Signal that was used
+            profitable: Whether trade was profitable
+        """
+        if pair not in self.signal_accuracy:
+            self.signal_accuracy[pair] = {'BUY': 0.5, 'SELL': 0.5, 'HOLD': 0.5}
+        
+        # Update signal accuracy with exponential moving average
+        current_accuracy = self.signal_accuracy[pair].get(signal, 0.5)
+        new_accuracy = (1 - self.learning_rate) * current_accuracy + self.learning_rate * (1.0 if profitable else 0.0)
+        self.signal_accuracy[pair][signal] = new_accuracy
+        
+        # Update overall pair score
+        if pair in self.pair_scores:
+            current_score = self.pair_scores[pair]
+            self.pair_scores[pair] = (1 - self.learning_rate) * current_score + self.learning_rate * (1.0 if profitable else 0.0)
+    
+    def get_best_pairs(self, top_n: int = 5) -> list[str]:
+        """Get top performing pairs.
+        
+        Args:
+            top_n: Number of top pairs to return
+        
+        Returns:
+            List of best performing pairs
+        """
+        if not self.pair_scores:
+            return []
+        
+        sorted_pairs = sorted(self.pair_scores.items(), key=lambda x: x[1], reverse=True)
+        return [pair for pair, _ in sorted_pairs[:top_n]]

@@ -48,75 +48,97 @@ class SafetyManager:
         """
         # Reset daily counters if new day
         self._check_daily_reset()
+    
+    def check_trade_approval(
+        self,
+        asset: str,
+        size: float,
+        direction: str,
+        current_portfolio_value: float
+    ) -> Dict[str, Any]:
+        """Check if trade meets risk requirements.
         
-        # Check cooldown
+        Args:
+            asset: Asset to trade
+            size: Trade size in base currency
+            direction: 'long' or 'short'
+            current_portfolio_value: Current portfolio value
+        
+        Returns:
+            Approval decision with approved flag and reason
+        """
+        # Check daily resets
+        self._check_daily_reset()
+        
+        # Check if in cooldown
         if self.cooldown_until and datetime.now() < self.cooldown_until:
-            return False
+            return {
+                'approved': False,
+                'reason': f'In cooldown until {self.cooldown_until.strftime("%H:%M:%S")}',
+                'risk_level': 'BLOCKED'
+            }
+        
+        # Check daily trade limit
+        if self.trades_count >= self.max_daily_trades:
+            return {
+                'approved': False,
+                'reason': f'Daily trade limit reached: {self.trades_count}/{self.max_daily_trades}',
+                'risk_level': 'BLOCKED'
+            }
         
         # Check daily loss limit
         if self.daily_pnl <= -self.max_daily_loss:
-            self._trigger_cooldown("daily_loss_exceeded")
-            return False
-        
-        # Check daily trades limit
-        if self.trades_count >= self.max_daily_trades:
-            self._trigger_cooldown("daily_trades_exceeded")
-            return False
+            return {
+                'approved': False,
+                'reason': f'Daily loss limit reached: ${self.daily_pnl:.2f}',
+                'risk_level': 'BLOCKED'
+            }
         
         # Check loss streak
         if self.loss_streak >= self.max_loss_streak:
-            self._trigger_cooldown("loss_streak_exceeded")
-            return False
+            return {
+                'approved': False,
+                'reason': f'Loss streak limit reached: {self.loss_streak} consecutive losses',
+                'risk_level': 'BLOCKED'
+            }
         
-        return True
-    
-    def register_trade(self, pnl: float):
-        """Register a completed trade.
+        # Check position size vs portfolio
+        position_pct = (size / current_portfolio_value) * 100 if current_portfolio_value > 0 else 100
+        if position_pct > 25.0:  # Max 25% per position
+            return {
+                'approved': False,
+                'reason': f'Position size too large: {position_pct:.1f}% of portfolio',
+                'risk_level': 'HIGH'
+            }
         
-        Args:
-            pnl: Trade profit/loss
-        """
-        self.daily_pnl += pnl
-        self.trades_count += 1
-        
-        if pnl < 0:
-            self.loss_streak += 1
+        # Determine risk level
+        if position_pct > 15.0 or self.loss_streak > 2:
+            risk_level = 'HIGH'
+        elif position_pct > 10.0 or self.loss_streak > 1:
+            risk_level = 'MEDIUM'
         else:
-            self.loss_streak = 0
+            risk_level = 'LOW'
+        
+        return {
+            'approved': True,
+            'reason': f'Trade approved - Risk: {risk_level}, Position: {position_pct:.1f}%',
+            'risk_level': risk_level
+        }
     
     def _check_daily_reset(self):
-        """Check if daily counters should be reset."""
+        """Check if daily counters need reset."""
         now = datetime.now()
-        if (now - self.last_reset).days >= 1:
+        if now.date() > self.last_reset.date():
             self.daily_pnl = 0.0
             self.trades_count = 0
             self.loss_streak = 0
+            self.cooldown_until = None
             self.last_reset = now
-    
-    def _trigger_cooldown(self, reason: str):
-        """Trigger cooldown period.
-        
-        Args:
-            reason: Reason for cooldown
-        """
-        self.cooldown_until = datetime.now() + timedelta(seconds=self.cooldown_duration)
-        print(f"SAFETY COOLDOWN TRIGGERED: {reason}")
-        print(f"Trading suspended until {self.cooldown_until}")
-    
-    def get_status(self) -> Dict[str, Any]:
-        """Get current safety status.
-        
-        Returns:
-            Dictionary with safety status information
-        """
-        return {
-            "can_trade": self.can_trade(),
-            "daily_pnl": self.daily_pnl,
-            "trades_count": self.trades_count,
-            "loss_streak": self.loss_streak,
-            "cooldown_active": bool(self.cooldown_until and datetime.now() < self.cooldown_until),
-            "cooldown_until": self.cooldown_until
-        }
+
+
+# Create alias for backward compatibility
+# Create alias for backward compatibility
+RiskManager = SafetyManager
 
 
 class DeploymentChecklist:

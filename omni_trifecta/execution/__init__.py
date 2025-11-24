@@ -5,6 +5,7 @@ from .executors import (
     BinaryExecutor,
     MT5SpotExecutor,
     ArbitrageExecutor,
+    ForexExecutor,
     RealTimeExecutionHub,
     ShadowExecutionHub,
 )
