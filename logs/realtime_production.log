@@ -24,3 +24,10 @@
 2025-11-24 12:27:17,460 - realtime_multi_asset_demo_production - INFO - ℹ️ Pocket Option token not configured in .env
 2025-11-24 12:27:17,460 - realtime_multi_asset_demo_production - INFO - ✅ Full execution system initialized
 2025-11-24 12:27:17,460 - realtime_multi_asset_demo_production - INFO - ✅ Production Scanner initialized successfully
+2025-11-24 12:28:08,029 - realtime_multi_asset_demo_production - INFO - Initializing Production Real-Time Scanner...
+2025-11-24 12:28:08,029 - realtime_multi_asset_demo_production - INFO - ℹ️ MT5 credentials not configured in .env
+2025-11-24 12:28:08,457 - realtime_multi_asset_demo_production - INFO - ✅ CCXT library available
+2025-11-24 12:28:08,457 - realtime_multi_asset_demo_production - INFO - ℹ️ DEX credentials not configured in .env
+2025-11-24 12:28:08,457 - realtime_multi_asset_demo_production - INFO - ℹ️ Pocket Option token not configured in .env
+2025-11-24 12:28:08,457 - realtime_multi_asset_demo_production - INFO - ✅ Full execution system initialized
+2025-11-24 12:28:08,457 - realtime_multi_asset_demo_production - INFO - ✅ Production Scanner initialized successfully
