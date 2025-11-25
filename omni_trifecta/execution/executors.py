@@ -1,8 +1,16 @@
 """Execution engines for different trading modes."""
 
-from typing import Dict, Any, Callable, Optional
+from typing import Dict, Any, Callable, Optional, TYPE_CHECKING
 from abc import ABC, abstractmethod
 import random
+import logging
+
+# Type hints for OMS integration
+if TYPE_CHECKING:
+    from .oms import OrderManagementSystem, OrderType, OrderStatus
+
+# Get logger for this module
+logger = logging.getLogger(__name__)
 
 
 class ExecutorBase(ABC):
@@ -202,13 +210,15 @@ class RealTimeExecutionHub:
     """Real-time execution hub coordinating all executors.
     
     Routes execution requests to appropriate executor based on engine type.
+    Integrates with Order Management System for position tracking.
     """
     
     def __init__(
         self,
         binary_executor: Optional[BinaryExecutor] = None,
         spot_executor: Optional[MT5SpotExecutor] = None,
-        arb_executor: Optional[ArbitrageExecutor] = None
+        arb_executor: Optional[ArbitrageExecutor] = None,
+        oms: Optional['OrderManagementSystem'] = None
     ):
         """Initialize execution hub.
         
@@ -216,10 +226,12 @@ class RealTimeExecutionHub:
             binary_executor: Binary options executor
             spot_executor: Spot forex executor
             arb_executor: Arbitrage executor
+            oms: Order Management System for position tracking
         """
         self.binary_executor = binary_executor or BinaryExecutor()
         self.spot_executor = spot_executor or MT5SpotExecutor()
         self.arb_executor = arb_executor or ArbitrageExecutor()
+        self.oms = oms
     
     def execute(self, decision: Dict[str, Any], ctx: Dict[str, Any]) -> Dict[str, Any]:
         """Execute trade via appropriate executor.
@@ -234,11 +246,11 @@ class RealTimeExecutionHub:
         engine_type = decision.get("engine_type", "none")
         
         if engine_type == "binary":
-            return self.binary_executor.execute(decision, ctx)
+            result = self.binary_executor.execute(decision, ctx)
         elif engine_type == "spot":
-            return self.spot_executor.execute(decision, ctx)
+            result = self.spot_executor.execute(decision, ctx)
         elif engine_type == "arbitrage":
-            return self.arb_executor.execute(decision, ctx)
+            result = self.arb_executor.execute(decision, ctx)
         else:
             return {
                 "success": False,
@@ -246,6 +258,52 @@ class RealTimeExecutionHub:
                 "pnl": 0.0,
                 "mode": "NONE"
             }
+        
+        # Update OMS if available and trade was successful
+        if self.oms and result.get("success"):
+            self._update_oms(decision, result)
+        
+        return result
+    
+    def _update_oms(self, decision: Dict[str, Any], result: Dict[str, Any]):
+        """Update Order Management System with trade result.
+        
+        Args:
+            decision: Trading decision
+            result: Execution result
+        """
+        try:
+            from .oms import OrderType
+            
+            symbol = decision.get("symbol", "UNKNOWN")
+            engine_type = decision.get("engine_type")
+            
+            if engine_type == "spot":
+                direction = decision.get("direction", "BUY")
+                volume = decision.get("volume", 0.01)
+                
+                # Create and fill order
+                order = self.oms.create_order(
+                    symbol=symbol,
+                    side=direction,
+                    order_type=OrderType.MARKET,
+                    quantity=volume,
+                    metadata={"engine_type": engine_type}
+                )
+                
+                if result.get("success"):
+                    self.oms.fill_order(
+                        order_id=order.order_id,
+                        fill_price=decision.get("entry_price", 0),
+                        commission=0.0
+                    )
+        except ImportError as e:
+            logger.debug(f"OMS import not available: {e}")
+        except ValueError as e:
+            logger.warning(f"OMS order validation failed: {e}")
+        except Exception as e:
+            # OMS update is non-critical, log and continue
+            logger.debug(f"OMS update failed (non-critical): {e}")
 
 
 class ShadowExecutionHub(RealTimeExecutionHub):
