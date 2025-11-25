@@ -48,6 +48,71 @@ class SafetyManager:
         """
         # Reset daily counters if new day
         self._check_daily_reset()
+        
+        # Check if in cooldown
+        if self.cooldown_until and datetime.now() < self.cooldown_until:
+            return False
+        
+        # Check daily trade limit
+        if self.trades_count >= self.max_daily_trades:
+            return False
+        
+        # Check daily loss limit
+        if self.daily_pnl <= -self.max_daily_loss:
+            return False
+        
+        # Check loss streak
+        if self.loss_streak >= self.max_loss_streak:
+            return False
+        
+        return True
+    
+    def register_trade(self, pnl: float):
+        """Register a completed trade and update tracking state.
+        
+        Args:
+            pnl: Profit/loss from the trade
+        """
+        self._check_daily_reset()
+        
+        # Update trade count
+        self.trades_count += 1
+        
+        # Update daily PnL
+        self.daily_pnl += pnl
+        
+        # Update loss streak
+        if pnl < 0:
+            self.loss_streak += 1
+        else:
+            self.loss_streak = 0
+        
+        # Trigger cooldown if limits exceeded
+        if (self.daily_pnl <= -self.max_daily_loss or 
+            self.loss_streak >= self.max_loss_streak or
+            self.trades_count >= self.max_daily_trades):
+            self.cooldown_until = datetime.now() + timedelta(seconds=self.cooldown_duration)
+    
+    def get_status(self) -> Dict[str, Any]:
+        """Get current safety manager status.
+        
+        Returns:
+            Dictionary with current safety status
+        """
+        self._check_daily_reset()
+        
+        return {
+            'can_trade': self.can_trade(),
+            'daily_pnl': self.daily_pnl,
+            'trades_count': self.trades_count,
+            'loss_streak': self.loss_streak,
+            'max_daily_loss': self.max_daily_loss,
+            'max_daily_trades': self.max_daily_trades,
+            'max_loss_streak': self.max_loss_streak,
+            'cooldown_until': self.cooldown_until.isoformat() if self.cooldown_until else None,
+            'in_cooldown': self.cooldown_until is not None and datetime.now() < self.cooldown_until,
+            'last_reset': self.last_reset.isoformat()
+        }
     
     def check_trade_approval(
         self,

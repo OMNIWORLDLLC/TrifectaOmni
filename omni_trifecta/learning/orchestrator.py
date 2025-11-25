@@ -128,10 +128,13 @@ class TrainingOrchestrator:
         trades_file = self.log_dir / "trades.jsonl"
         
         if not trades_file.exists():
-            return {"trades_processed": 0}
+            return {"trades_processed": 0, "errors": 0}
         
         trades_processed = 0
         total_pnl = 0.0
+        errors = 0
+        engine_pnl = {"binary": 0.0, "spot": 0.0, "arbitrage": 0.0}
+        engine_counts = {"binary": 0, "spot": 0, "arbitrage": 0}
         
         with open(trades_file, "r") as f:
             for line in f:
@@ -143,20 +146,38 @@ class TrainingOrchestrator:
                     pnl = trade.get("pnl", 0.0)
                     route_id = trade.get("route_id")
                     
+                    # Skip if no engine type
+                    if not engine:
+                        continue
+                    
                     # Update arbitrage RL if applicable
                     if engine == "arbitrage" and route_id:
                         arb_rl.update_route(route_id, pnl)
+                    
+                    # Track engine performance for regime RL
+                    if engine in engine_pnl:
+                        engine_pnl[engine] += pnl
+                        engine_counts[engine] += 1
+                        # Update regime RL performance tracking
+                        regime_rl.engine_performance[engine].append(pnl)
                     
                     trades_processed += 1
                     total_pnl += pnl
                     
                 except json.JSONDecodeError:
+                    errors += 1
+                    continue
+                except Exception as e:
+                    errors += 1
                     continue
         
         return {
             "trades_processed": trades_processed,
             "total_pnl": total_pnl,
-            "avg_pnl": total_pnl / trades_processed if trades_processed > 0 else 0.0
+            "avg_pnl": total_pnl / trades_processed if trades_processed > 0 else 0.0,
+            "engine_pnl": engine_pnl,
+            "engine_counts": engine_counts,
+            "errors": errors
         }
     
     def retrain_sequence_model(

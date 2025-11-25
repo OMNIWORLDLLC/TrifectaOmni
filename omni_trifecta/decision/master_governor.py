@@ -239,6 +239,9 @@ class MasterGovernorX100:
         decision["route_id"] = route_id
         decision["amount"] = ctx.get("arb_amount", 1.0)
         
+        # Store route_id for learning update
+        self._last_route_id = route_id
+        
         return decision
     
     def update_learning(self, reward: float, new_state: RegimeState):
@@ -249,7 +252,12 @@ class MasterGovernorX100:
             new_state: New regime state after trade
         """
         if self.last_state and self.last_engine:
+            # Update regime switching RL
             self.regime_rl.update(self.last_state, self.last_engine, reward, new_state)
+            
+            # Update arbitrage RL agent if this was an arbitrage trade
+            if self.last_engine == "arbitrage" and hasattr(self, '_last_route_id'):
+                self.arb_rl_agent.update_route(self._last_route_id, reward)
     
     def _empty_decision(self) -> Dict[str, Any]:
         """Return empty decision when insufficient data.
