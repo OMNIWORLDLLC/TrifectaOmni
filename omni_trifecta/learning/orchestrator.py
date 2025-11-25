@@ -4,8 +4,12 @@ from typing import Dict, Any, Callable, List
 from pathlib import Path
 import json
 import shutil
+import logging
 
 from ..decision.rl_agents import RegimeSwitchingRL, ArbitrageRLAgent
+
+# Get logger for this module
+logger = logging.getLogger(__name__)
 
 
 class RLJSONStore:
@@ -164,12 +168,17 @@ class TrainingOrchestrator:
                     trades_processed += 1
                     total_pnl += pnl
                     
-                except json.JSONDecodeError:
+                except json.JSONDecodeError as e:
                     errors += 1
+                    logger.debug(f"JSON decode error in trade log: {e}")
                     continue
                 except Exception as e:
                     errors += 1
+                    logger.warning(f"Error processing trade record: {e}")
                     continue
+        
+        if errors > 0:
+            logger.info(f"Processed {trades_processed} trades with {errors} errors")
         
         return {
             "trades_processed": trades_processed,

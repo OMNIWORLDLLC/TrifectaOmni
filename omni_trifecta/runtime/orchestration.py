@@ -5,6 +5,7 @@ from datetime import datetime
 import time
 
 from ..decision.master_governor import MasterGovernorX100
+from ..decision.rl_agents import RegimeState
 from ..execution.executors import RealTimeExecutionHub, ShadowExecutionHub
 from ..learning.orchestrator import RLJSONStore
 from ..safety.managers import SafetyManager
@@ -232,7 +233,6 @@ def omni_main_loop(
                 # Build new state for learning update
                 new_trend_strength = runtime.governor._calculate_trend_strength(price_window)
                 new_vol_est = runtime.governor.seq_model.predict_volatility(price_window)
-                from ..decision.rl_agents import RegimeState
                 new_state = RegimeState(
                     vol_score=new_vol_est,
                     trend_strength=new_trend_strength,

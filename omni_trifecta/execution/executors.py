@@ -1,8 +1,16 @@
 """Execution engines for different trading modes."""
 
-from typing import Dict, Any, Callable, Optional
+from typing import Dict, Any, Callable, Optional, TYPE_CHECKING
 from abc import ABC, abstractmethod
 import random
+import logging
+
+# Type hints for OMS integration
+if TYPE_CHECKING:
+    from .oms import OrderManagementSystem, OrderType, OrderStatus
+
+# Get logger for this module
+logger = logging.getLogger(__name__)
 
 
 class ExecutorBase(ABC):
@@ -265,7 +273,7 @@ class RealTimeExecutionHub:
             result: Execution result
         """
         try:
-            from .oms import OrderType, OrderStatus
+            from .oms import OrderType
             
             symbol = decision.get("symbol", "UNKNOWN")
             engine_type = decision.get("engine_type")
@@ -289,9 +297,13 @@ class RealTimeExecutionHub:
                         fill_price=decision.get("entry_price", 0),
                         commission=0.0
                     )
-        except Exception:
-            # OMS update is non-critical, don't break execution
-            pass
+        except ImportError as e:
+            logger.debug(f"OMS import not available: {e}")
+        except ValueError as e:
+            logger.warning(f"OMS order validation failed: {e}")
+        except Exception as e:
+            # OMS update is non-critical, log and continue
+            logger.debug(f"OMS update failed (non-critical): {e}")
 
 
 class ShadowExecutionHub(RealTimeExecutionHub):
