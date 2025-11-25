@@ -9,7 +9,29 @@ This repository is **fully functional** and **ready for immediate use**. All com
 
 ---
 
-## 🚀 Fastest Start (3 Commands)
+## 🚀 ONE-CLICK FULL SYSTEM INSTALLATION
+
+**The absolute fastest way to get everything running:**
+
+```bash
+git clone https://github.com/OMNIWORLDLLC/TrifectaOmni.git
+cd TrifectaOmni
+./full-system-install.sh
+```
+
+**That's it!** This single command will:
+- ✅ Install all dependencies and create virtual environment
+- ✅ Build and compile the entire system
+- ✅ Wire up configuration and validate connectivity
+- ✅ Deploy and run in shadow mode with live testing
+
+**Expected output:** Complete system setup in ~2-3 minutes, followed by successful shadow mode trading demonstration.
+
+---
+
+## 🎯 Alternative Quick Start Methods
+
+### Method 1: Super Quick Test (3 Commands)
 
 Test the system immediately without any configuration:
 
@@ -41,55 +63,110 @@ This will check:
 
 ---
 
-## 📦 Installation Methods
+### Method 2: Verify Installation
 
-### Method 1: Quick Test (Recommended First)
-
-Perfect for testing the system immediately:
+After cloning, verify everything is ready:
 
 ```bash
-git clone https://github.com/OMNIWORLDLLC/TrifectaOmni.git
-cd TrifectaOmni
-pip install -r requirements.txt
-python examples/shadow_mode_example.py
+python verify_installation.py
 ```
 
-**No configuration needed!** Shadow mode works out of the box.
+This will check:
+- ✓ Python version
+- ✓ Required packages
+- ✓ Module imports
+- ✓ Directory structure
+- ✓ Configuration files
+- ✓ Example scripts
 
-### Method 2: One-Click Installation
+---
 
+## 📦 Full System Installation Modes
+
+The `full-system-install.sh` script supports multiple deployment modes:
+
+### Shadow Mode (Default - Recommended)
 ```bash
-# Clone the repository
-git clone https://github.com/OMNIWORLDLLC/TrifectaOmni.git
-cd TrifectaOmni
-
-# Test prerequisites (optional but recommended)
-bash scripts/test-install.sh
-
-# One-click installation with shadow mode testing
+./full-system-install.sh shadow
+# or just
 ./full-system-install.sh
 ```
+**Best for:** Testing and learning the system without any risk
 
-This will automatically:
-1. Install all dependencies and create virtual environment
-2. Build and compile the system
-3. Wire up configuration and validate connectivity
-4. Deploy in shadow mode for testing
+### Production Mode
+```bash
+./full-system-install.sh production
+```
+**Best for:** Live trading with real money (requires API credentials in .env)
 
-## Manual Installation
+### Service Mode
+```bash
+./full-system-install.sh service
+```
+**Best for:** Installing as a systemd service for 24/7 operation
 
-If you prefer to install manually:
+---
+
+## 🔧 Manual Installation
+
+## 🔧 Manual Installation
+
+If you prefer step-by-step installation:
 
 ```bash
-# Clone the repository
+# 1. Clone the repository
 git clone https://github.com/OMNIWORLDLLC/TrifectaOmni.git
 cd TrifectaOmni
 
-# Install dependencies
-pip install -r requirements.txt
+# 2. Install dependencies
+bash scripts/install.sh
+
+# 3. Build the system
+bash scripts/build.sh
+
+# 4. Wire configuration
+bash scripts/wire.sh
+
+# 5. Deploy
+bash scripts/deploy.sh shadow
 ```
 
-## Run Shadow Mode Example
+---
+
+## 📊 What Happens During Installation
+
+### Phase 1: Installation (60-90 seconds)
+- Creates Python virtual environment
+- Installs all required packages (numpy, pandas, scikit-learn, onnxruntime, web3, etc.)
+- Creates directory structure (runtime/logs, models, data, backups)
+- Sets up environment configuration from .env.example
+- Verifies all imports work correctly
+
+### Phase 2: Build (10-15 seconds)
+- Compiles Python bytecode for faster execution
+- Validates package structure
+- Runs pre-flight system checks
+- Verifies all 10 core modules are ready
+
+### Phase 3: Wire & Configuration (5-10 seconds)
+- Validates configuration loading
+- Tests all component imports
+- Runs deployment checklist
+- Confirms system readiness
+
+### Phase 4: Deployment (30-60 seconds)
+- Launches the system in selected mode
+- Runs shadow trading simulation (default)
+- Generates performance metrics
+- Saves complete logs
+
+**Total Time: ~2-3 minutes for complete system setup**
+
+---
+
+## 🎮 Using the System
+
+### Run Shadow Mode Example
 
 Test the system with simulated trading:
 

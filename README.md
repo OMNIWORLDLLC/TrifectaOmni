@@ -3,11 +3,30 @@
 
 [![Status](https://img.shields.io/badge/Status-Ready%20to%20Run-brightgreen)](STATUS.md)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue)](requirements.txt)
+[![One-Click](https://img.shields.io/badge/Install-One%20Click-orange)](ONE-CLICK-INSTALL.md)
 [![License](https://img.shields.io/badge/License-Proprietary-red)]()
 
-## 🚀 Quick Start
+## 🚀 ONE-CLICK INSTALLATION
 
-**This repository is ready to run!** Test it in 3 commands:
+**Get the complete system running in one command:**
+
+```bash
+git clone https://github.com/OMNIWORLDLLC/TrifectaOmni.git && cd TrifectaOmni && ./full-system-install.sh
+```
+
+This single command will:
+- ✅ Install all dependencies and create virtual environment
+- ✅ Build and compile the entire system  
+- ✅ Wire up configuration and validate connectivity
+- ✅ Deploy and run in shadow mode with live demonstration
+
+**Total setup time: ~2-3 minutes** | **Zero configuration required**
+
+---
+
+### Alternative Quick Start (Manual)
+
+Test the system immediately with minimal steps:
 
 ```bash
 git clone https://github.com/OMNIWORLDLLC/TrifectaOmni.git
@@ -15,15 +34,12 @@ cd TrifectaOmni
 pip install -r requirements.txt && python examples/shadow_mode_example.py
 ```
 
-Or use the automated installer:
+---
 
-```bash
-./full-system-install.sh
-```
-
-📋 **See [STATUS.md](STATUS.md) for complete readiness information**  
-📖 **See [QUICKSTART.md](QUICKSTART.md) for quick setup instructions**  
-⚙️ **See [SETUP.md](SETUP.md) for detailed configuration**
+📋 **[STATUS.md](STATUS.md)** - Complete readiness information  
+🚀 **[ONE-CLICK-INSTALL.md](ONE-CLICK-INSTALL.md)** - One-click installation guide  
+📖 **[QUICKSTART.md](QUICKSTART.md)** - Detailed quick setup guide  
+⚙️ **[SETUP.md](SETUP.md)** - Full configuration and usage guide
 
 ---
 
