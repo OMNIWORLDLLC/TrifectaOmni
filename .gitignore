@@ -79,3 +79,10 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+
+# Node.js / TypeScript
+node_modules/
+ts/dist/
+ts/coverage/
+*.tsbuildinfo
+routes.*.json
