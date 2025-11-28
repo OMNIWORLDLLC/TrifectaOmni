@@ -320,7 +320,7 @@ class OrderSide(Enum):
 
 ```python
 class RouteType(Enum):
-    TWO_HOP, THREE_HOP, FOUR_HOP, CROSS_CHAIN
+    TWO_HOP, THREE_HOP, FOUR_HOP  # Cross-chain handled via ChainId + TokenType
 ```
 
 **File:** `omni_trifecta/execution/token_equivalence.py`

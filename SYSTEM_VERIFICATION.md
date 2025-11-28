@@ -105,8 +105,8 @@ This document verifies that the Omni-Trifecta Quant Engine provides:
 |------------|------|-------------|--------|
 | 2-Hop | `RouteType.TWO_HOP` | Cross-exchange A→B→A | ✅ Complete |
 | 3-Hop | `RouteType.THREE_HOP` | Triangular A→B→C→A | ✅ Complete |
-| 4-Hop | `RouteType.FOUR_HOP` | Rectangular | ✅ Complete |
-| Cross-Chain | `RouteType.CROSS_CHAIN` | Bridge arbitrage | ✅ Complete |
+| 4-Hop | `RouteType.FOUR_HOP` | Rectangular A→B→C→D→A | ✅ Complete |
+| Cross-Chain | `ChainId` + `TokenType` | Bridge arbitrage via token_equivalence | ✅ Complete |
 
 ### 2.5 Blockchain Network Coverage
 
@@ -270,7 +270,7 @@ This document verifies that the Omni-Trifecta Quant Engine provides:
 │  ├── Blockchain Networks                           ✅ 8/8 Complete  │
 │  ├── Execution Venues                              ✅ 4/4 Complete  │
 │  ├── Order Types                                   ✅ 4/4 Complete  │
-│  └── Arbitrage Routes                              ✅ 4/4 Complete  │
+│  └── Arbitrage Routes (3 RouteTypes + Cross-Chain) ✅ 4/4 Complete  │
 │                                                                      │
 │  FOUR-DOCUMENT BUNDLE                                               │
 │  ├── DOC 1: Architecture                           ✅ Complete      │
