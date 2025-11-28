@@ -3,6 +3,8 @@
  */
 
 import fs from 'fs';
+import os from 'os';
+import path from 'path';
 import {
   buildAllRoutes,
   buildAndPersistRouteMatrix,
@@ -243,7 +245,8 @@ describe('mainnetRouteMatrixBuilder', () => {
   });
 
   describe('buildAndPersistRouteMatrix', () => {
-    const testFile = '/tmp/test-routes.json';
+    const tmpDir = os.tmpdir();
+    const testFile = path.join(tmpDir, 'test-routes.json');
 
     afterEach(() => {
       // Cleanup test files
@@ -251,10 +254,10 @@ describe('mainnetRouteMatrixBuilder', () => {
         fs.unlinkSync(testFile);
       }
       // Clean up any temp files
-      const files = fs.readdirSync('/tmp');
+      const files = fs.readdirSync(tmpDir);
       for (const file of files) {
         if (file.startsWith('test-routes.json.tmp.')) {
-          fs.unlinkSync(`/tmp/${file}`);
+          fs.unlinkSync(path.join(tmpDir, file));
         }
       }
     });

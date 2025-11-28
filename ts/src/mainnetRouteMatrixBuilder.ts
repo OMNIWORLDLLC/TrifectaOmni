@@ -110,7 +110,9 @@ export function buildAllRoutes(
   ) {
     const L = path.length;
 
-    // A complete route has 2 or more tokens, corresponding to 1 to maxHops segments
+    // Route validity: path has 2+ tokens means 1+ hops (segments)
+    // A path of L tokens has L-1 segments/hops
+    // We allow up to maxHops segments, which means up to maxHops+1 tokens
     if (L >= 2 && L <= maxHops + 1) {
       out.push({
         path: [...path],
@@ -338,7 +340,7 @@ export function buildArbitrageRoutes(
           out.push({
             path: [...path, startToken],
             segments: [...segments, closingSegment],
-            hops: L  // Number of segments = L (current path length)
+            hops: segments.length + 1  // Adding one closing segment to complete the cycle
           });
         }
       }
