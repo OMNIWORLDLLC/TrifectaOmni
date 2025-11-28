@@ -7,10 +7,16 @@ Supports 2-hop, 3-hop, and 4-hop arbitrage routes with:
 - Slippage modeling
 - Gas cost estimation
 - Minimum profit thresholds
+
+Also includes the Universal Arbitrage Equation with Dynamic Flash Loans:
+  Π_net = V_loan * ([P_A * (1 - S_A)] - [P_B * (1 + S_B)] - F_rate)
+
+With TVL-based constraints:
+  C_min * TVL ≤ V_loan ≤ C_max * TVL
 """
 
 from typing import Dict, List, Tuple, Optional, Any
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 import numpy as np
 from decimal import Decimal, getcontext
@@ -24,6 +30,12 @@ class RouteType(Enum):
     TWO_HOP = 2
     THREE_HOP = 3
     FOUR_HOP = 4
+
+
+class CalculatorType(Enum):
+    """Calculator implementation type."""
+    LEGACY = "legacy"  # Original multi-hop calculator
+    UNIVERSAL = "universal"  # Universal Arbitrage Equation
 
 
 @dataclass
@@ -613,5 +625,554 @@ def format_arbitrage_report(
         report.append("  ❌ AVOID - High risk or unfavorable risk/reward")
     
     report.append("="*70)
+    
+    return "\n".join(report)
+
+
+# ============================================================================
+# Universal Arbitrage Equation with Dynamic Flash Loans
+# ============================================================================
+
+@dataclass
+class FlashLoanParams:
+    """Flash loan configuration parameters.
+    
+    The Universal Arbitrage Equation:
+        Π_net = V_loan * ([P_A * (1 - S_A)] - [P_B * (1 + S_B)] - F_rate)
+    
+    Where V_loan is constrained by:
+        C_min * TVL ≤ V_loan ≤ C_max * TVL
+    """
+    tvl: float  # Total Value Locked in the liquidity pool
+    fee_rate: float = 0.0009  # Flash loan fee rate (0.09% for Aave)
+    c_min: float = 0.05  # Minimum Liquidity Coefficient (5%)
+    c_max: float = 0.20  # Maximum Liquidity Coefficient (20%)
+    
+    @property
+    def v_min(self) -> float:
+        """Minimum flash loan volume based on TVL."""
+        return self.c_min * self.tvl
+    
+    @property
+    def v_max(self) -> float:
+        """Maximum flash loan volume based on TVL."""
+        return self.c_max * self.tvl
+
+
+@dataclass
+class UniversalArbitrageResult:
+    """Result from Universal Arbitrage Equation calculation."""
+    net_profit: float
+    gross_profit: float
+    loan_volume: float
+    effective_sell_price: float
+    effective_buy_price: float
+    slippage_sell: float
+    slippage_buy: float
+    flash_loan_cost: float
+    flash_fee_rate: float
+    profit_bps: float
+    is_profitable: bool
+    optimal_volume: float
+    max_loan_allowed: float
+    min_loan_required: float
+    price_spread_bps: float
+    # Additional accuracy variables
+    market_volatility: float = 0.0
+    liquidity_depth_ratio: float = 1.0
+    execution_probability: float = 1.0
+    time_decay_factor: float = 1.0
+    gas_adjusted_profit: float = 0.0
+
+
+class UniversalArbitrageCalculator:
+    """
+    Universal Arbitrage Calculator implementing the Master Equation:
+    
+        Π_net = V_loan * ([P_A * (1 - S_A)] - [P_B * (1 + S_B)] - F_rate)
+    
+    This provides a cleaner, more mathematically rigorous approach to
+    arbitrage profit calculation compared to the legacy multi-hop approach.
+    
+    Key differences from legacy calculator:
+    1. Explicit flash loan integration with fee modeling
+    2. TVL-based volume constraints
+    3. Symmetric slippage modeling (buy vs sell)
+    4. Single formula for profit calculation
+    5. Built-in optimal volume calculation
+    
+    Additional accuracy variables:
+    - Market volatility adjustment
+    - Liquidity depth ratio
+    - Execution probability
+    - Time decay factor (MEV protection)
+    - Gas price adjustment
+    """
+    
+    def __init__(
+        self,
+        min_profit_bps: float = 30.0,
+        max_slippage_pct: float = 0.5,  # 0.5% max slippage
+        safety_margin: float = 0.20,
+        gas_price_gwei: float = 50.0,  # Current gas price
+        block_time_ms: float = 12000.0  # Ethereum ~12 seconds
+    ):
+        """
+        Initialize Universal Arbitrage Calculator.
+        
+        Args:
+            min_profit_bps: Minimum profit in basis points (30 = 0.30%)
+            max_slippage_pct: Maximum acceptable slippage as percentage
+            safety_margin: Safety margin fraction (0.2 = 20%)
+            gas_price_gwei: Gas price in Gwei for cost estimation
+            block_time_ms: Block time in milliseconds for execution timing
+        """
+        self.min_profit_bps = min_profit_bps
+        self.max_slippage_pct = max_slippage_pct / 100  # Convert to decimal
+        self.safety_margin = safety_margin
+        self.gas_price_gwei = gas_price_gwei
+        self.block_time_ms = block_time_ms
+        
+    def calculate_profit(
+        self,
+        amount_borrowed: float,
+        price_sell: float,
+        slippage_sell: float,
+        price_buy: float,
+        slippage_buy: float,
+        flash_fee_rate: float
+    ) -> float:
+        """
+        Raw Universal Arbitrage Equation.
+        
+        The equation models the actual arbitrage flow:
+        1. Borrow V_loan USD via flash loan
+        2. Buy tokens at P_B (with slippage): tokens = V_loan / (P_B * (1 + S_B))
+        3. Sell tokens at P_A (with slippage): USD = tokens * P_A * (1 - S_A)
+        4. Repay flash loan + fee
+        
+        Simplified to:
+            Π_net = V_loan * [(P_A * (1 - S_A)) / (P_B * (1 + S_B)) - 1 - F_rate]
+        
+        Or equivalently:
+            Π_net = V_loan * [Price_Ratio - 1 - F_rate]
+            
+        Where Price_Ratio = Effective_Sell / Effective_Buy
+        
+        Args:
+            amount_borrowed: V_loan - Flash loan volume in USD
+            price_sell: P_A - Price on Sell Chain (High Price, USD per token)
+            slippage_sell: S_A - Slippage on Sell Chain (decimal, e.g., 0.01)
+            price_buy: P_B - Price on Buy Chain (Low Price, USD per token)
+            slippage_buy: S_B - Slippage on Buy Chain (decimal, e.g., 0.01)
+            flash_fee_rate: F_rate - Flash loan fee rate (e.g., 0.0009)
+        
+        Returns:
+            Net profit in quote currency (USD)
+        """
+        # 1. Effective Sell Price (Slippage reduces sell price)
+        eff_sell = price_sell * (1 - slippage_sell)
+        
+        # 2. Effective Buy Price (Slippage increases buy cost)
+        eff_buy = price_buy * (1 + slippage_buy)
+        
+        # 3. Calculate tokens bought
+        if eff_buy <= 0:
+            return 0.0
+        tokens_bought = amount_borrowed / eff_buy
+        
+        # 4. Calculate USD received from selling
+        usd_received = tokens_bought * eff_sell
+        
+        # 5. Flash Loan Cost
+        loan_cost = amount_borrowed * flash_fee_rate
+        
+        # 6. Net Profit = USD received - original loan - loan fee
+        return usd_received - amount_borrowed - loan_cost
+    
+    def calculate_optimal_volume(
+        self,
+        flash_params: FlashLoanParams,
+        price_sell: float,
+        price_buy: float,
+        base_slippage_sell: float,
+        base_slippage_buy: float,
+        slippage_impact_factor: float = 0.00001
+    ) -> float:
+        """
+        Calculate optimal flash loan volume that maximizes profit.
+        
+        As volume increases:
+        - Gross profit increases linearly
+        - Slippage increases (often quadratically with volume)
+        
+        The optimal volume balances these effects.
+        
+        Args:
+            flash_params: Flash loan parameters with TVL constraints
+            price_sell: Sell price (higher price chain)
+            price_buy: Buy price (lower price chain)
+            base_slippage_sell: Base slippage on sell side
+            base_slippage_buy: Base slippage on buy side
+            slippage_impact_factor: How slippage scales with volume
+        
+        Returns:
+            Optimal loan volume
+        """
+        # Price spread
+        spread = price_sell - price_buy
+        
+        if spread <= 0:
+            return 0.0
+        
+        # For linear slippage model: slippage = base + factor * volume
+        # dProfit/dVolume = 0 gives optimal volume
+        # Simplified: V_opt proportional to spread / slippage_factor
+        
+        total_slippage_factor = slippage_impact_factor * (price_sell + price_buy)
+        
+        if total_slippage_factor <= 0:
+            return flash_params.v_max
+        
+        v_optimal = (spread - flash_params.fee_rate) / (2 * total_slippage_factor)
+        
+        # Constrain to TVL limits
+        return max(flash_params.v_min, min(flash_params.v_max, v_optimal))
+    
+    def calculate_dynamic_slippage(
+        self,
+        volume: float,
+        base_slippage: float,
+        liquidity: float,
+        volatility: float = 0.0
+    ) -> float:
+        """
+        Calculate dynamic slippage based on volume and market conditions.
+        
+        Slippage model:
+            S = S_base + (V / L) * k + σ * c
+        
+        Where:
+            S_base = base slippage
+            V = trade volume
+            L = liquidity depth
+            k = volume impact coefficient
+            σ = volatility
+            c = volatility coefficient
+        
+        Args:
+            volume: Trade volume in USD
+            base_slippage: Base slippage rate (decimal)
+            liquidity: Pool liquidity in USD
+            volatility: Market volatility (decimal, 0-1)
+        
+        Returns:
+            Effective slippage as decimal
+        """
+        # Volume impact (quadratic for large trades)
+        if liquidity > 0:
+            volume_ratio = volume / liquidity
+            volume_impact = volume_ratio * (1 + volume_ratio)  # Quadratic
+        else:
+            volume_impact = 0.1  # Default high slippage for no liquidity
+        
+        # Volatility impact
+        volatility_impact = volatility * 0.5  # 50% of volatility adds to slippage
+        
+        # Total slippage
+        total_slippage = base_slippage + volume_impact + volatility_impact
+        
+        return min(total_slippage, self.max_slippage_pct)
+    
+    def calculate_arbitrage(
+        self,
+        price_sell: float,
+        price_buy: float,
+        flash_params: FlashLoanParams,
+        liquidity_sell: float,
+        liquidity_buy: float,
+        base_slippage_sell: float = 0.001,
+        base_slippage_buy: float = 0.001,
+        volatility: float = 0.0,
+        gas_cost_usd: float = 0.0,
+        execution_probability: float = 1.0
+    ) -> UniversalArbitrageResult:
+        """
+        Full arbitrage calculation using Universal Arbitrage Equation.
+        
+        Args:
+            price_sell: P_A - Price on sell chain (should be higher)
+            price_buy: P_B - Price on buy chain (should be lower)
+            flash_params: Flash loan configuration
+            liquidity_sell: Liquidity on sell chain
+            liquidity_buy: Liquidity on buy chain
+            base_slippage_sell: Base slippage on sell side
+            base_slippage_buy: Base slippage on buy side
+            volatility: Current market volatility (0-1)
+            gas_cost_usd: Estimated gas cost in USD
+            execution_probability: Probability of successful execution
+        
+        Returns:
+            UniversalArbitrageResult with full profit analysis
+        """
+        # Calculate optimal volume
+        optimal_volume = self.calculate_optimal_volume(
+            flash_params, price_sell, price_buy,
+            base_slippage_sell, base_slippage_buy
+        )
+        
+        # Calculate dynamic slippage for optimal volume
+        slippage_sell = self.calculate_dynamic_slippage(
+            optimal_volume, base_slippage_sell, liquidity_sell, volatility
+        )
+        slippage_buy = self.calculate_dynamic_slippage(
+            optimal_volume, base_slippage_buy, liquidity_buy, volatility
+        )
+        
+        # Calculate effective prices
+        effective_sell = price_sell * (1 - slippage_sell)
+        effective_buy = price_buy * (1 + slippage_buy)
+        
+        # Calculate profit using master equation
+        net_profit = self.calculate_profit(
+            optimal_volume,
+            price_sell, slippage_sell,
+            price_buy, slippage_buy,
+            flash_params.fee_rate
+        )
+        
+        # Gross profit (before flash loan cost) - correctly calculated
+        # tokens_bought = optimal_volume / effective_buy
+        # usd_received = tokens_bought * effective_sell
+        # gross_profit = usd_received - optimal_volume
+        if effective_buy > 0:
+            tokens_bought = optimal_volume / effective_buy
+            usd_received = tokens_bought * effective_sell
+            gross_profit = usd_received - optimal_volume
+        else:
+            gross_profit = 0.0
+        
+        # Flash loan cost
+        flash_loan_cost = optimal_volume * flash_params.fee_rate
+        
+        # Gas adjusted profit
+        gas_adjusted_profit = net_profit - gas_cost_usd
+        
+        # Calculate price spread in basis points
+        price_spread_bps = ((price_sell - price_buy) / price_buy) * 10000
+        
+        # Profit in basis points
+        if optimal_volume > 0:
+            profit_bps = (net_profit / optimal_volume) * 10000
+        else:
+            profit_bps = 0.0
+        
+        # Liquidity depth ratio (average of both sides)
+        min_liquidity = min(liquidity_sell, liquidity_buy)
+        liquidity_depth_ratio = min_liquidity / flash_params.tvl if flash_params.tvl > 0 else 0
+        
+        # Time decay factor (MEV protection) - reduces with volatility
+        time_decay_factor = max(0.5, 1.0 - volatility * 0.5)
+        
+        # Apply safety margin and execution probability
+        adjusted_profit = gas_adjusted_profit * (1 - self.safety_margin) * execution_probability * time_decay_factor
+        
+        return UniversalArbitrageResult(
+            net_profit=net_profit,
+            gross_profit=gross_profit,
+            loan_volume=optimal_volume,
+            effective_sell_price=effective_sell,
+            effective_buy_price=effective_buy,
+            slippage_sell=slippage_sell,
+            slippage_buy=slippage_buy,
+            flash_loan_cost=flash_loan_cost,
+            flash_fee_rate=flash_params.fee_rate,
+            profit_bps=profit_bps,
+            is_profitable=adjusted_profit > 0 and profit_bps >= self.min_profit_bps,
+            optimal_volume=optimal_volume,
+            max_loan_allowed=flash_params.v_max,
+            min_loan_required=flash_params.v_min,
+            price_spread_bps=price_spread_bps,
+            market_volatility=volatility,
+            liquidity_depth_ratio=liquidity_depth_ratio,
+            execution_probability=execution_probability,
+            time_decay_factor=time_decay_factor,
+            gas_adjusted_profit=gas_adjusted_profit
+        )
+    
+    def compare_with_legacy(
+        self,
+        pair_buy: TradingPair,
+        pair_sell: TradingPair,
+        capital: float,
+        flash_params: Optional[FlashLoanParams] = None,
+        legacy_calculator: Optional[MultiHopArbitrageCalculator] = None
+    ) -> Dict[str, Any]:
+        """
+        Compare Universal Arbitrage Equation with legacy calculator.
+        
+        This method enables direct A/B comparison between the two approaches.
+        
+        Args:
+            pair_buy: Trading pair for buying
+            pair_sell: Trading pair for selling
+            capital: Capital amount for comparison
+            flash_params: Flash loan parameters (derived from TVL if not provided)
+            legacy_calculator: Legacy calculator instance (created if not provided)
+        
+        Returns:
+            Comparison results with both calculations and analysis
+        """
+        # Create default flash params from liquidity
+        if flash_params is None:
+            tvl = min(pair_buy.liquidity, pair_sell.liquidity)
+            flash_params = FlashLoanParams(tvl=tvl)
+        
+        # Create legacy calculator if not provided
+        if legacy_calculator is None:
+            legacy_calculator = MultiHopArbitrageCalculator(
+                min_profit_bps=self.min_profit_bps,
+                max_slippage_bps=self.max_slippage_pct * 10000,
+                safety_margin=self.safety_margin
+            )
+        
+        # Legacy calculation
+        legacy_route = legacy_calculator.calculate_2hop_arbitrage(
+            pair_buy, pair_sell, capital
+        )
+        
+        # Universal calculation
+        universal_result = self.calculate_arbitrage(
+            price_sell=pair_sell.bid_price,
+            price_buy=pair_buy.ask_price,
+            flash_params=flash_params,
+            liquidity_sell=pair_sell.liquidity,
+            liquidity_buy=pair_buy.liquidity,
+            base_slippage_sell=pair_sell.exchange.slippage_factor,
+            base_slippage_buy=pair_buy.exchange.slippage_factor,
+            gas_cost_usd=pair_buy.exchange.gas_cost + pair_sell.exchange.gas_cost
+        )
+        
+        # Comparison analysis
+        comparison = {
+            "legacy": {
+                "profit": legacy_route.expected_profit if legacy_route else 0,
+                "profit_bps": legacy_route.expected_profit_bps if legacy_route else 0,
+                "is_profitable": legacy_route is not None,
+                "total_fees": legacy_route.total_fees if legacy_route else 0,
+                "slippage": legacy_route.slippage_estimate if legacy_route else 0,
+            },
+            "universal": {
+                "profit": universal_result.net_profit,
+                "profit_bps": universal_result.profit_bps,
+                "is_profitable": universal_result.is_profitable,
+                "total_fees": universal_result.flash_loan_cost,
+                "slippage": (universal_result.slippage_sell + universal_result.slippage_buy) / 2,
+                "optimal_volume": universal_result.optimal_volume,
+                "gas_adjusted_profit": universal_result.gas_adjusted_profit,
+            },
+            "analysis": {
+                "profit_difference": universal_result.net_profit - (legacy_route.expected_profit if legacy_route else 0),
+                "profit_bps_difference": universal_result.profit_bps - (legacy_route.expected_profit_bps if legacy_route else 0),
+                "recommended_calculator": self._recommend_calculator(legacy_route, universal_result),
+                "accuracy_improvements": self._list_accuracy_improvements(universal_result),
+            }
+        }
+        
+        return comparison
+    
+    def _recommend_calculator(
+        self,
+        legacy_route: Optional[ArbitrageRoute],
+        universal_result: UniversalArbitrageResult
+    ) -> str:
+        """Recommend which calculator to use based on results."""
+        legacy_profit = legacy_route.expected_profit if legacy_route else 0
+        universal_profit = universal_result.net_profit
+        
+        if universal_profit > legacy_profit * 1.1:
+            return "UNIVERSAL - Higher estimated profit with flash loan optimization"
+        elif legacy_profit > universal_profit * 1.1:
+            return "LEGACY - More conservative approach preferred"
+        else:
+            return "EITHER - Results are similar, choose based on execution preference"
+    
+    def _list_accuracy_improvements(self, result: UniversalArbitrageResult) -> List[str]:
+        """List accuracy improvements provided by Universal calculator."""
+        improvements = []
+        
+        if result.market_volatility > 0:
+            improvements.append("Market volatility adjustment applied")
+        if result.liquidity_depth_ratio < 1:
+            improvements.append("Liquidity depth ratio factored in")
+        if result.execution_probability < 1:
+            improvements.append("Execution probability discount applied")
+        if result.time_decay_factor < 1:
+            improvements.append("MEV protection time decay applied")
+        if result.gas_adjusted_profit != result.net_profit:
+            improvements.append("Gas costs subtracted from profit")
+        
+        return improvements
+
+
+def format_comparison_report(comparison: Dict[str, Any], capital: float) -> str:
+    """
+    Format comparison between Universal and Legacy calculators.
+    
+    Args:
+        comparison: Comparison dictionary from compare_with_legacy
+        capital: Capital amount used
+    
+    Returns:
+        Formatted report string
+    """
+    report = []
+    report.append("=" * 80)
+    report.append("ARBITRAGE CALCULATOR COMPARISON REPORT")
+    report.append("Universal Arbitrage Equation vs Legacy Multi-Hop Calculator")
+    report.append("=" * 80)
+    report.append("")
+    
+    report.append(f"Capital: ${capital:,.2f}")
+    report.append("")
+    
+    legacy = comparison["legacy"]
+    universal = comparison["universal"]
+    analysis = comparison["analysis"]
+    
+    report.append("LEGACY CALCULATOR (Multi-Hop):")
+    report.append(f"  Expected Profit: ${legacy['profit']:,.2f}")
+    report.append(f"  Profit Margin: {legacy['profit_bps']:.2f} bps")
+    report.append(f"  Is Profitable: {'Yes' if legacy['is_profitable'] else 'No'}")
+    report.append(f"  Total Fees: ${legacy['total_fees']:,.2f}")
+    report.append(f"  Slippage: {legacy['slippage']*10000:.2f} bps")
+    report.append("")
+    
+    report.append("UNIVERSAL CALCULATOR (Flash Loan Equation):")
+    report.append(f"  Net Profit: ${universal['profit']:,.2f}")
+    report.append(f"  Profit Margin: {universal['profit_bps']:.2f} bps")
+    report.append(f"  Is Profitable: {'Yes' if universal['is_profitable'] else 'No'}")
+    report.append(f"  Flash Loan Cost: ${universal['total_fees']:,.2f}")
+    report.append(f"  Avg Slippage: {universal['slippage']*10000:.2f} bps")
+    report.append(f"  Optimal Volume: ${universal['optimal_volume']:,.2f}")
+    report.append(f"  Gas Adjusted Profit: ${universal['gas_adjusted_profit']:,.2f}")
+    report.append("")
+    
+    report.append("COMPARISON ANALYSIS:")
+    report.append(f"  Profit Difference: ${analysis['profit_difference']:,.2f}")
+    report.append(f"  Profit BPS Difference: {analysis['profit_bps_difference']:.2f} bps")
+    report.append(f"  Recommendation: {analysis['recommended_calculator']}")
+    report.append("")
+    
+    if analysis['accuracy_improvements']:
+        report.append("ACCURACY IMPROVEMENTS (Universal):")
+        for improvement in analysis['accuracy_improvements']:
+            report.append(f"  • {improvement}")
+        report.append("")
+    
+    report.append("EQUATION REFERENCE:")
+    report.append("  Π_net = V_loan × ([P_A × (1 - S_A)] - [P_B × (1 + S_B)] - F_rate)")
+    report.append("  Where: V_loan constrained by C_min × TVL ≤ V_loan ≤ C_max × TVL")
+    report.append("=" * 80)
     
     return "\n".join(report)

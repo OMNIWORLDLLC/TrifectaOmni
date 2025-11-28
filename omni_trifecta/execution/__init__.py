@@ -18,14 +18,29 @@ from .brokers import (
     Web3ArbitrageBridge,
     create_broker_bridge,
 )
+from .arbitrage_calculator import (
+    MultiHopArbitrageCalculator,
+    UniversalArbitrageCalculator,
+    Exchange,
+    TradingPair,
+    ArbitrageRoute,
+    FlashLoanParams,
+    UniversalArbitrageResult,
+    RouteType,
+    CalculatorType,
+    format_arbitrage_report,
+    format_comparison_report,
+)
 
 __all__ = [
+    # Executors
     "ExecutorBase",
     "BinaryExecutor",
     "MT5SpotExecutor",
     "ArbitrageExecutor",
     "RealTimeExecutionHub",
     "ShadowExecutionHub",
+    # Brokers
     "BrokerBridge",
     "CCXTBrokerBridge",
     "OandaBrokerBridge",
@@ -33,4 +48,16 @@ __all__ = [
     "BinaryOptionsBridge",
     "Web3ArbitrageBridge",
     "create_broker_bridge",
+    # Arbitrage Calculators
+    "MultiHopArbitrageCalculator",
+    "UniversalArbitrageCalculator",
+    "Exchange",
+    "TradingPair",
+    "ArbitrageRoute",
+    "FlashLoanParams",
+    "UniversalArbitrageResult",
+    "RouteType",
+    "CalculatorType",
+    "format_arbitrage_report",
+    "format_comparison_report",
 ]
