@@ -43,6 +43,23 @@ pip install -r requirements.txt && python examples/shadow_mode_example.py
 
 ---
 
+## 📚 ELITE-GRADE DOCUMENTATION
+
+The four-document bundle forms the **complete elite-grade specification** for understanding, implementing, auditing, and operating this engine without guesswork:
+
+| Document | Description | Location |
+|----------|-------------|----------|
+| **📐 Architecture** | 9-layer system design with component specifications | [Below](#formal-system-architecture-document) |
+| **🔗 Dependency Map** | Complete module relationships and data flow | [Module Dependency Map](#module-dependency-map) |
+| **📊 Flow Graph** | Tick → Decision → Execution call hierarchy | [Flow-Control Graph](#flow-control-graph-inter-module-call-hierarchy) |
+| **📘 Runbook** | Operational procedures and deployment protocols | [Operational Runbook](#doc-4--operational-runbook--deployment-protocol) |
+
+### Quick Reference Documents
+- 📋 **[COMPLETE_SPECIFICATION.md](COMPLETE_SPECIFICATION.md)** - Consolidated four-document bundle
+- ✅ **[SYSTEM_VERIFICATION.md](SYSTEM_VERIFICATION.md)** - Full market depth coverage verification
+
+---
+
 ## FORMAL SYSTEM ARCHITECTURE DOCUMENT
 
 ### 1. SYSTEM PURPOSE AND PHILOSOPHY
