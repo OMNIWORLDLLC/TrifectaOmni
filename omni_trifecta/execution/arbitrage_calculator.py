@@ -16,7 +16,7 @@ With TVL-based constraints:
 """
 
 from typing import Dict, List, Tuple, Optional, Any
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
 import numpy as np
 from decimal import Decimal, getcontext
@@ -637,11 +637,24 @@ def format_arbitrage_report(
 class FlashLoanParams:
     """Flash loan configuration parameters.
     
-    The Universal Arbitrage Equation:
-        Π_net = V_loan * ([P_A * (1 - S_A)] - [P_B * (1 + S_B)] - F_rate)
+    Implements the Universal Arbitrage Equation with TVL constraints:
     
-    Where V_loan is constrained by:
-        C_min * TVL ≤ V_loan ≤ C_max * TVL
+    Profit Equation:
+        net_profit = loan_volume * (price_ratio - 1 - fee_rate)
+        
+    Where:
+        price_ratio = (price_sell * (1 - slippage_sell)) / (price_buy * (1 + slippage_buy))
+    
+    Volume Constraint:
+        min_volume <= loan_volume <= max_volume
+        min_volume = min_coefficient * tvl
+        max_volume = max_coefficient * tvl
+    
+    Attributes:
+        tvl: Total Value Locked in the liquidity pool (USD)
+        fee_rate: Flash loan fee rate (e.g., 0.0009 = 0.09% for Aave)
+        c_min: Minimum liquidity coefficient (e.g., 0.05 = 5% of TVL)
+        c_max: Maximum liquidity coefficient (e.g., 0.20 = 20% of TVL)
     """
     tvl: float  # Total Value Locked in the liquidity pool
     fee_rate: float = 0.0009  # Flash loan fee rate (0.09% for Aave)
@@ -808,32 +821,42 @@ class UniversalArbitrageCalculator:
         
         The optimal volume balances these effects.
         
+        Mathematical derivation:
+        Profit(V) = V * (spread / price_buy - slippage_factor * V - fee_rate)
+        dProfit/dV = spread / price_buy - 2 * slippage_factor * V - fee_rate = 0
+        V_optimal = (spread / price_buy - fee_rate) / (2 * slippage_factor)
+        
+        Simplified: V_opt ≈ (spread - fee_rate * price_avg) / (2 * slippage_factor * price_avg)
+        
         Args:
             flash_params: Flash loan parameters with TVL constraints
             price_sell: Sell price (higher price chain)
             price_buy: Buy price (lower price chain)
             base_slippage_sell: Base slippage on sell side
             base_slippage_buy: Base slippage on buy side
-            slippage_impact_factor: How slippage scales with volume
+            slippage_impact_factor: How slippage scales with volume (per dollar)
         
         Returns:
-            Optimal loan volume
+            Optimal loan volume constrained by TVL limits
         """
-        # Price spread
+        # Price spread: the raw price difference between exchanges
         spread = price_sell - price_buy
         
         if spread <= 0:
+            # No arbitrage opportunity exists
             return 0.0
         
-        # For linear slippage model: slippage = base + factor * volume
-        # dProfit/dVolume = 0 gives optimal volume
-        # Simplified: V_opt proportional to spread / slippage_factor
-        
+        # Calculate combined slippage factor across both exchanges
+        # This scales with the average price level to normalize impact
         total_slippage_factor = slippage_impact_factor * (price_sell + price_buy)
         
-        if total_slippage_factor <= 0:
+        # Use small epsilon to avoid division by zero
+        epsilon = 1e-12
+        if total_slippage_factor <= epsilon:
+            # Negligible slippage means we can use max allowed volume
             return flash_params.v_max
         
+        # Optimal volume from derivative of profit function set to zero
         v_optimal = (spread - flash_params.fee_rate) / (2 * total_slippage_factor)
         
         # Constrain to TVL limits

@@ -16,8 +16,13 @@ With TVL constraints:
     C_min × TVL ≤ V_loan ≤ C_max × TVL
 """
 
+import os
 import sys
-sys.path.insert(0, '/home/runner/work/TrifectaOmni/TrifectaOmni')
+
+# Add project root to path for standalone execution
+project_root = os.path.dirname(os.path.abspath(__file__))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
 from omni_trifecta.execution.arbitrage_calculator import (
     MultiHopArbitrageCalculator,
