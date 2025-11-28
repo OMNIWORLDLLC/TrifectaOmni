@@ -129,10 +129,10 @@ This document verifies that the Omni-Trifecta Quant Engine provides:
 
 | Document | Primary Location | Backup Location | Status |
 |----------|------------------|-----------------|--------|
-| **Architecture** | README.md (Lines 46-300) | COMPLETE_SPECIFICATION.md | ✅ Complete |
-| **Dependency Map** | README.md (Lines 137-210) | COMPLETE_SPECIFICATION.md | ✅ Complete |
-| **Flow Graph** | README.md (Lines 211-260) | COMPLETE_SPECIFICATION.md | ✅ Complete |
-| **Runbook** | README.md (Lines 301+) | COMPLETE_SPECIFICATION.md | ✅ Complete |
+| **Architecture** | README.md (Line 63) | COMPLETE_SPECIFICATION.md | ✅ Complete |
+| **Dependency Map** | README.md (Line 154) | COMPLETE_SPECIFICATION.md | ✅ Complete |
+| **Flow Graph** | README.md (Line 228) | COMPLETE_SPECIFICATION.md | ✅ Complete |
+| **Runbook** | README.md (Line 952) | COMPLETE_SPECIFICATION.md | ✅ Complete |
 
 ### 3.2 Document Content Verification
 
