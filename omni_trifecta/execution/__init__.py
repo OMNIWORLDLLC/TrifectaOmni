@@ -21,6 +21,7 @@ from .brokers import (
 from .arbitrage_calculator import (
     MultiHopArbitrageCalculator,
     UniversalArbitrageCalculator,
+    OmniArbV2Calculator,
     Exchange,
     TradingPair,
     ArbitrageRoute,
@@ -28,8 +29,18 @@ from .arbitrage_calculator import (
     UniversalArbitrageResult,
     RouteType,
     CalculatorType,
+    # OmniArb V2 Zone 6 components
+    FlashLoanSource,
+    FlashLoanSourceConfig,
+    ChainType,
+    ChainConfig,
+    TotalCostOfExecution,
+    LiquidityDepth,
+    TriangularArbitrageOpportunity,
+    Zone6Result,
     format_arbitrage_report,
     format_comparison_report,
+    format_zone6_report,
 )
 
 __all__ = [
@@ -51,6 +62,7 @@ __all__ = [
     # Arbitrage Calculators
     "MultiHopArbitrageCalculator",
     "UniversalArbitrageCalculator",
+    "OmniArbV2Calculator",
     "Exchange",
     "TradingPair",
     "ArbitrageRoute",
@@ -58,6 +70,16 @@ __all__ = [
     "UniversalArbitrageResult",
     "RouteType",
     "CalculatorType",
+    # OmniArb V2 Zone 6 components
+    "FlashLoanSource",
+    "FlashLoanSourceConfig",
+    "ChainType",
+    "ChainConfig",
+    "TotalCostOfExecution",
+    "LiquidityDepth",
+    "TriangularArbitrageOpportunity",
+    "Zone6Result",
     "format_arbitrage_report",
     "format_comparison_report",
+    "format_zone6_report",
 ]
