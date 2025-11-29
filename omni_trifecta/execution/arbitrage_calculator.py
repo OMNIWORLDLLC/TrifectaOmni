@@ -1565,16 +1565,10 @@ class OmniArbV2Calculator:
         slippage_multiplier = 1 - dynamic_slippage
         gross_profit = price_diff * volume * slippage_multiplier / price_a  # Normalize by price
         
-        # Actually, the correct way to calculate:
-        # 1. Buy at P_B (with slippage): tokens = V / (P_B * (1 + S))
-        # 2. Sell at P_A (with slippage): USD = tokens * P_A * (1 - S)
-        # Net = USD - V - costs
-        
-        # Simplified for price spread arbitrage:
-        # tokens_bought = volume / price_b  # At lower price
-        # usd_from_sell = tokens_bought * price_a * (1 - dynamic_slippage)
-        # gross_profit = usd_from_sell - volume
-        
+        # Calculate gross profit using the arbitrage flow:
+        # 1. Buy tokens at price_b
+        # 2. Sell tokens at price_a (with slippage reducing received amount)
+        # Gross Profit = USD received from sell - USD spent on buy
         if price_b > 0:
             tokens_bought = volume / price_b
             usd_from_sell = tokens_bought * price_a * slippage_multiplier

@@ -410,10 +410,16 @@ def test_flash_source_priority():
     print("\n--- SOURCE SELECTION BY VOLUME ---")
     test_volumes = [5_000, 50_000, 100_000, 30_000_000, 200_000_000]
     
+    # Get Aave fee rate from config for comparison
+    aave_fee_rate = next(
+        (s.fee_rate for s in sources if s.source == FlashLoanSource.AAVE),
+        0.0009  # Default Aave fee rate
+    )
+    
     for vol in test_volumes:
         source = calc._select_best_flash_source(vol)
         if source:
-            savings = vol * 0.0009 - vol * source.fee_rate  # Compared to Aave
+            savings = vol * aave_fee_rate - vol * source.fee_rate  # Compared to Aave
             print(f"Volume ${vol:>12,.0f}: {source.source.value:<12} (Fee: {source.fee_rate*100:.2f}%, Savings vs Aave: ${savings:,.2f})")
         else:
             print(f"Volume ${vol:>12,.0f}: No source available")
