@@ -11,11 +11,23 @@ class PriceFeedAdapter:
     """Base class for price feed adapters."""
     
     def __init__(self, symbol: str):
+        """Initialize price feed adapter.
+        
+        Args:
+            symbol: Trading symbol to get prices for
+        """
         self.symbol = symbol
     
     def __iter__(self) -> Iterator[float]:
-        """Return iterator for price stream."""
-        raise NotImplementedError
+        """Return iterator for price stream.
+        
+        Yields:
+            Price values as they become available
+            
+        Raises:
+            NotImplementedError: If not implemented by subclass
+        """
+        raise NotImplementedError("Subclasses must implement __iter__")
 
 
 class MT5PriceFeedAdapter(PriceFeedAdapter):
