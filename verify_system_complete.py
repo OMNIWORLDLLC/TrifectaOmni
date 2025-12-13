@@ -130,8 +130,9 @@ def test_function_returns() -> bool:
         print(f"✓ DirectionPredictor.predict_with_confidence() -> ({direction}, {prob:.3f}, {confidence:.3f})")
         
         # Test price feeds (only simulated - no network calls)
+        from itertools import islice
         adapter = SimulatedPriceFeedAdapter("BTCUSDT", [50000, 50100, 50200], delay=0)
-        prices = [p for i, p in enumerate(adapter) if i < 3]
+        prices = list(islice(adapter, 3))
         assert len(prices) == 3
         print(f"✓ SimulatedPriceFeedAdapter yields prices: {prices}")
         
