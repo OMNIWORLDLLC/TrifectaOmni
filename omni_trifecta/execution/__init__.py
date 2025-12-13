@@ -49,6 +49,7 @@ __all__ = [
     "BinaryExecutor",
     "MT5SpotExecutor",
     "ArbitrageExecutor",
+    "ForexExecutor",
     "RealTimeExecutionHub",
     "ShadowExecutionHub",
     # Brokers

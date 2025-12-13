@@ -13,7 +13,8 @@ class SequenceModelEngine:
     
     def __init__(self):
         """Initialize sequence model engine."""
-        pass
+        # Base implementation requires no initialization
+        # Subclasses can override to add model loading, etc.
     
     def predict_direction(self, window: List[float]) -> float:
         """Predict probability of upward movement.
