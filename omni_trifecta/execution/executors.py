@@ -21,13 +21,13 @@ class ExecutorBase(ABC):
         """Execute trade based on decision.
         
         Args:
-            decision: Trading decision
-            ctx: Execution context
+            decision: Trading decision with engine-specific parameters
+            ctx: Execution context with market data and configuration
         
         Returns:
-            Execution result
+            Execution result with success status, trade_id/order_id, and pnl
         """
-        pass
+        raise NotImplementedError("Subclasses must implement execute")
 
 
 class BinaryExecutor(ExecutorBase):

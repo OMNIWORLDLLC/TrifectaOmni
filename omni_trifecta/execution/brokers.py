@@ -10,18 +10,42 @@ class BrokerBridge(ABC):
     
     @abstractmethod
     def send_order(self, symbol: str, direction: str, volume: float, **kwargs) -> Dict[str, Any]:
-        """Send order to broker."""
-        pass
+        """Send order to broker.
+        
+        Args:
+            symbol: Trading symbol
+            direction: Order direction (BUY/SELL)
+            volume: Order volume
+            **kwargs: Additional parameters
+            
+        Returns:
+            Order execution result
+        """
+        raise NotImplementedError("Subclasses must implement send_order")
     
     @abstractmethod
     def get_position(self, symbol: str) -> Optional[Dict[str, Any]]:
-        """Get current position for symbol."""
-        pass
+        """Get current position for symbol.
+        
+        Args:
+            symbol: Trading symbol
+            
+        Returns:
+            Position information or None if no position exists
+        """
+        raise NotImplementedError("Subclasses must implement get_position")
     
     @abstractmethod
     def close_position(self, symbol: str) -> Dict[str, Any]:
-        """Close position for symbol."""
-        pass
+        """Close position for symbol.
+        
+        Args:
+            symbol: Trading symbol
+            
+        Returns:
+            Close position result
+        """
+        raise NotImplementedError("Subclasses must implement close_position")
 
 
 class CCXTBrokerBridge(BrokerBridge):
